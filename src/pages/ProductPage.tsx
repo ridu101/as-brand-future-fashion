@@ -62,8 +62,8 @@ const ProductPage = () => {
 
             {/* Stock */}
             <div className="flex items-center gap-2 mt-6">
-              <Check className="w-4 h-4 text-green-400" />
-              <span className="text-sm text-green-400 font-mono">{product.stock} in stock</span>
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-mono">{product.stock} in stock</span>
             </div>
 
             {/* Sizes */}
