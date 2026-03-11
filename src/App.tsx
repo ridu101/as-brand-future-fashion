@@ -17,6 +17,11 @@ import TrendingPage from "./pages/TrendingPage";
 import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import LoginPage from "./pages/LoginPage";
+import CustomerLoginPage from "./pages/CustomerLoginPage";
+import OwnerLoginPage from "./pages/OwnerLoginPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import WishlistPage from "./pages/WishlistPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +44,11 @@ const App = () => (
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/customer-login" element={<CustomerLoginPage />} />
+            <Route path="/owner-login" element={<OwnerLoginPage />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/panjabi" element={<CategoryPage />} />
             <Route path="/shirt" element={<CategoryPage />} />

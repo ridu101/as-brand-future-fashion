@@ -139,7 +139,7 @@ const Navbar = () => {
             )}
           </button>
 
-          <Link to="/customer-login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">
+          <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">
             Login
           </Link>
 
