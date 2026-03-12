@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingBag, Heart, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Product } from "@/data/products";
+import { toast } from "sonner";
 
 const navLinks = [
   { label: "Home", path: "/" },
