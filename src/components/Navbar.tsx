@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingBag, Heart, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Product } from "@/data/products";
+import { toast } from "sonner";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -25,7 +26,19 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const isCustomer = !!localStorage.getItem("as_customer");
+  const isAdmin = localStorage.getItem("as_admin") === "true";
+  const isLoggedIn = isCustomer || isAdmin;
+
+  const handleLogout = () => {
+    localStorage.removeItem("as_customer");
+    localStorage.removeItem("as_admin");
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
 
   useEffect(() => {
     if (searchQuery.length > 1) {
@@ -123,7 +136,13 @@ const Navbar = () => {
             )}
           </button>
 
-          <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className="hidden md:flex items-center gap-1.5 neon-button-outline px-4 py-1.5 text-sm">
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          ) : (
+            <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
+          )}
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-xl hover:bg-primary/10">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -138,7 +157,13 @@ const Navbar = () => {
               {navLinks.map(link => (
                 <Link key={link.path} to={link.path} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors text-foreground/70">{link.label}</Link>
               ))}
-              <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
+              {isLoggedIn ? (
+                <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              ) : (
+                <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
+              )}
             </div>
           </motion.div>
         )}
