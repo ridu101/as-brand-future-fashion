@@ -136,7 +136,13 @@ const Navbar = () => {
             )}
           </button>
 
-          <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className="hidden md:flex items-center gap-1.5 neon-button-outline px-4 py-1.5 text-sm">
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          ) : (
+            <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
+          )}
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-xl hover:bg-primary/10">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
