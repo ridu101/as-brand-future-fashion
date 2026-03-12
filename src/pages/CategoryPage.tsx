@@ -2,12 +2,14 @@ import { useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
-import { getProductsByCategory, categories } from "@/data/products";
+import { categories } from "@/data/products";
+import { useProducts } from "@/context/ProductContext";
 
 const CategoryPage = () => {
   const location = useLocation();
   const slug = location.pathname.replace("/", "");
   const category = categories.find(c => c.slug === slug);
+  const { getProductsByCategory } = useProducts();
   const products = getProductsByCategory(slug || "");
 
   if (!category) {

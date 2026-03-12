@@ -3,25 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus, Package, ShoppingCart, Trash2, Edit, LogOut, X, Save } from "lucide-react";
 import { Product, categories } from "@/data/products";
+import { useProducts } from "@/context/ProductContext";
 import { toast } from "sonner";
-
-interface AdminProduct extends Product {
-  isNew?: boolean;
-}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "add">("products");
-  const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (localStorage.getItem("as_admin") !== "true") {
       navigate("/owner-login");
-      return;
     }
-    // Load products from data
-    import("@/data/products").then(m => setProducts(m.products));
   }, [navigate]);
 
   const [newProduct, setNewProduct] = useState({
@@ -31,7 +25,7 @@ const AdminDashboard = () => {
 
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const p: AdminProduct = {
+    const p: Product = {
       id: `custom-${Date.now()}`,
       title: newProduct.title,
       category: newProduct.category,
@@ -41,16 +35,15 @@ const AdminDashboard = () => {
       stock: newProduct.stock,
       description: newProduct.description,
       image: newProduct.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
-      isNew: true,
     };
-    setProducts(prev => [p, ...prev]);
+    addProduct(p);
     setNewProduct({ title: "", category: "panjabi", year: 2025, price: 0, sizes: "S,M,L,XL", stock: 10, description: "", image: "" });
     toast.success("Product added successfully!");
     setActiveTab("products");
   };
 
   const handleDelete = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+    deleteProduct(id);
     toast.success("Product deleted");
   };
 
@@ -61,7 +54,7 @@ const AdminDashboard = () => {
 
   const handleSaveEdit = () => {
     if (!editingProduct) return;
-    setProducts(prev => prev.map(p => p.id === editingProduct.id ? editingProduct : p));
+    updateProduct(editingProduct);
     setEditingProduct(null);
     toast.success("Product updated!");
   };
@@ -104,19 +97,13 @@ const AdminDashboard = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-8">
         {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"
-            }`}
-          >
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
             <t.icon className="w-4 h-4" /> {t.label}
           </button>
         ))}
       </div>
 
-      {/* Products Tab */}
       {activeTab === "products" && (
         <div className="space-y-3">
           {products.slice(0, 20).map(p => (
@@ -135,7 +122,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Orders Tab */}
       {activeTab === "orders" && (
         <div className="glass-panel rounded-2xl p-8 text-center">
           <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -143,7 +129,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Add Product Tab */}
       {activeTab === "add" && (
         <form onSubmit={handleAddProduct} className="glass-panel rounded-2xl p-6 space-y-4 max-w-2xl">
           <input placeholder="Product Title" value={newProduct.title} onChange={e => setNewProduct(p => ({ ...p, title: e.target.value }))} className={inputCls} required />
@@ -164,7 +149,6 @@ const AdminDashboard = () => {
         </form>
       )}
 
-      {/* Edit Modal */}
       <AnimatePresence>
         {editingProduct && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
