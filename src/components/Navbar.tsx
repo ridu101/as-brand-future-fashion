@@ -26,7 +26,19 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const isCustomer = !!localStorage.getItem("as_customer");
+  const isAdmin = localStorage.getItem("as_admin") === "true";
+  const isLoggedIn = isCustomer || isAdmin;
+
+  const handleLogout = () => {
+    localStorage.removeItem("as_customer");
+    localStorage.removeItem("as_admin");
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
 
   useEffect(() => {
     if (searchQuery.length > 1) {
