@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles, Star, Mail } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
-import { getTrendingProducts, getFeaturedProducts, getSeasonalProducts, categories } from "@/data/products";
+import { categories } from "@/data/products";
+import { useProducts } from "@/context/ProductContext";
 import { toast } from "sonner";
 
 const Index = () => {
+  const { getTrendingProducts, getFeaturedProducts, getSeasonalProducts } = useProducts();
   const trending = getTrendingProducts().slice(0, 8);
   const featured = getFeaturedProducts().slice(0, 8);
   const eidCollection = getSeasonalProducts("eid").slice(0, 4);

@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
-import { products } from "@/data/products";
+import { useProducts } from "@/context/ProductContext";
 import { useState } from "react";
 
 const ShopPage = () => {
+  const { products } = useProducts();
   const [sortBy, setSortBy] = useState("latest");
 
   const sorted = [...products].sort((a, b) => {
