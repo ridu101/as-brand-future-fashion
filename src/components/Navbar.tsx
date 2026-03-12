@@ -157,7 +157,13 @@ const Navbar = () => {
               {navLinks.map(link => (
                 <Link key={link.path} to={link.path} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors text-foreground/70">{link.label}</Link>
               ))}
-              <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
+              {isLoggedIn ? (
+                <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              ) : (
+                <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
+              )}
             </div>
           </motion.div>
         )}
