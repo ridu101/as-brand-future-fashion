@@ -1,12 +1,17 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useOrders } from "@/context/OrderContext";
 import { Minus, Plus, Trash2, ArrowLeft, CheckCircle, X } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 const CartPage = () => {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+  const { user, isLoggedIn, requireAuth } = useAuth();
+  const { placeOrder } = useOrders();
+  const navigate = useNavigate();
   const [deliveryLocation, setDeliveryLocation] = useState<"dhaka" | "outside">("dhaka");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -14,7 +19,14 @@ const CartPage = () => {
   const deliveryCharge = deliveryLocation === "dhaka" ? 60 : 120;
   const finalTotal = totalPrice + deliveryCharge;
 
-  const handleCheckout = () => setShowOrderForm(true);
+  useEffect(() => {
+    if (user) setOrderForm(prev => ({ ...prev, name: user.name }));
+  }, [user]);
+
+  const handleCheckout = () => {
+    if (!requireAuth("place an order")) return;
+    setShowOrderForm(true);
+  };
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +34,18 @@ const CartPage = () => {
       toast.error("Please fill in all fields");
       return;
     }
+    placeOrder({
+      customerName: orderForm.name,
+      phone: orderForm.phone,
+      address: orderForm.address,
+      city: orderForm.city,
+      deliveryType: deliveryLocation,
+      items: [...items],
+      subtotal: totalPrice,
+      deliveryCharge,
+      totalPrice: finalTotal,
+      userEmail: user?.email || "",
+    });
     setShowOrderForm(false);
     setShowSuccess(true);
     clearCart();
@@ -45,7 +69,6 @@ const CartPage = () => {
           <ArrowLeft className="w-4 h-4" /> Continue Shopping
         </Link>
         <h1 className="section-title text-foreground mb-8">Your Cart</h1>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {items.map(item => (
@@ -68,7 +91,6 @@ const CartPage = () => {
               </div>
             ))}
           </div>
-
           <div className="glass-panel rounded-2xl p-6 h-fit sticky top-28">
             <h3 className="font-heading font-bold text-lg mb-6">Order Summary</h3>
             <div className="space-y-3 text-sm">
@@ -95,7 +117,6 @@ const CartPage = () => {
         </div>
       </motion.div>
 
-      {/* Order Form Modal */}
       <AnimatePresence>
         {showOrderForm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
@@ -120,17 +141,18 @@ const CartPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Success Popup */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-8 max-w-sm w-full text-center glow-behind">
-              <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}>
+                <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
+              </motion.div>
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">Order Placed Successfully!</h2>
               <p className="text-sm text-muted-foreground mb-6">Thank you for shopping with AS Brand.</p>
               <div className="flex gap-3">
                 <Link to="/shop" onClick={() => setShowSuccess(false)} className="neon-button flex-1 py-2.5 text-sm text-center">Continue Shopping</Link>
-                <button onClick={() => setShowSuccess(false)} className="neon-button-outline flex-1 py-2.5 text-sm">Close</button>
+                <Link to="/profile" onClick={() => setShowSuccess(false)} className="neon-button-outline flex-1 py-2.5 text-sm text-center">Go to Profile</Link>
               </div>
             </motion.div>
           </motion.div>
