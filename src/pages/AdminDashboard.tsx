@@ -1,22 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Plus, Package, ShoppingCart, Trash2, Edit, LogOut, X, Save } from "lucide-react";
+import { Plus, Package, ShoppingCart, Trash2, Edit, LogOut, X, Save, Clock, Truck, CheckCircle2, XCircle, Phone, MapPin } from "lucide-react";
 import { Product, categories } from "@/data/products";
 import { useProducts } from "@/context/ProductContext";
+import { useOrders, Order } from "@/context/OrderContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user, isAdmin, logout } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { orders, updateOrderStatus } = useOrders();
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "add">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (localStorage.getItem("as_admin") !== "true") {
-      navigate("/owner-login");
-    }
-  }, [navigate]);
+    if (!isAdmin) navigate("/owner-login");
+  }, [isAdmin, navigate]);
 
   const [newProduct, setNewProduct] = useState({
     title: "", category: "panjabi", year: 2025, price: 0,
@@ -27,12 +29,8 @@ const AdminDashboard = () => {
     e.preventDefault();
     const p: Product = {
       id: `custom-${Date.now()}`,
-      title: newProduct.title,
-      category: newProduct.category,
-      year: newProduct.year,
-      price: newProduct.price,
-      sizes: newProduct.sizes.split(",").map(s => s.trim()),
-      stock: newProduct.stock,
+      title: newProduct.title, category: newProduct.category, year: newProduct.year, price: newProduct.price,
+      sizes: newProduct.sizes.split(",").map(s => s.trim()), stock: newProduct.stock,
       description: newProduct.description,
       image: newProduct.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
     };
@@ -42,15 +40,9 @@ const AdminDashboard = () => {
     setActiveTab("products");
   };
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    toast.success("Product deleted");
-  };
+  const handleDelete = (id: string) => { deleteProduct(id); toast.success("Product deleted"); };
 
-  const handleLogout = () => {
-    localStorage.removeItem("as_admin");
-    navigate("/login");
-  };
+  const handleLogout = () => { logout(); navigate("/login"); };
 
   const handleSaveEdit = () => {
     if (!editingProduct) return;
@@ -59,9 +51,27 @@ const AdminDashboard = () => {
     toast.success("Product updated!");
   };
 
+  const statusIcon: Record<string, React.ReactNode> = {
+    pending: <Clock className="w-3.5 h-3.5" />,
+    processing: <Package className="w-3.5 h-3.5" />,
+    shipped: <Truck className="w-3.5 h-3.5" />,
+    delivered: <CheckCircle2 className="w-3.5 h-3.5" />,
+    cancelled: <XCircle className="w-3.5 h-3.5" />,
+  };
+
+  const statusColor: Record<string, string> = {
+    pending: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+    processing: "text-blue-400 bg-blue-400/10 border-blue-400/30",
+    shipped: "text-purple-400 bg-purple-400/10 border-purple-400/30",
+    delivered: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
+    cancelled: "text-red-400 bg-red-400/10 border-red-400/30",
+  };
+
+  const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.totalPrice, 0);
+
   const tabs = [
     { id: "products" as const, label: "Products", icon: Package },
-    { id: "orders" as const, label: "Orders", icon: ShoppingCart },
+    { id: "orders" as const, label: "Orders", icon: ShoppingCart, count: orders.length },
     { id: "add" as const, label: "Add Product", icon: Plus },
   ];
 
@@ -72,20 +82,19 @@ const AdminDashboard = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-heading text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Welcome, Azharul Islam</p>
+          <p className="text-sm text-muted-foreground mt-1">Welcome, {user?.name || "Admin"}</p>
         </div>
         <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm flex items-center gap-2">
           <LogOut className="w-4 h-4" /> Logout
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Products", value: products.length },
           { label: "Categories", value: categories.length },
-          { label: "Orders", value: 0 },
-          { label: "Revenue", value: "৳0" },
+          { label: "Orders", value: orders.length },
+          { label: "Revenue", value: `৳${totalRevenue}` },
         ].map(s => (
           <div key={s.label} className="glass-panel rounded-2xl p-4 text-center">
             <p className="text-2xl font-heading font-bold text-primary">{s.value}</p>
@@ -94,12 +103,12 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-8">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
             <t.icon className="w-4 h-4" /> {t.label}
+            {t.count !== undefined && <span className="text-xs font-mono">({t.count})</span>}
           </button>
         ))}
       </div>
@@ -123,9 +132,60 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === "orders" && (
-        <div className="glass-panel rounded-2xl p-8 text-center">
-          <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No orders yet. Orders will appear here.</p>
+        <div className="space-y-4">
+          {orders.length === 0 ? (
+            <div className="glass-panel rounded-2xl p-8 text-center">
+              <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No orders yet.</p>
+            </div>
+          ) : (
+            orders.map(order => (
+              <motion.div key={order.id} layout className="glass-panel rounded-2xl p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="font-mono text-xs text-primary">{order.id}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-mono capitalize border flex items-center gap-1.5 ${statusColor[order.status] || ""}`}>
+                    {statusIcon[order.status]} {order.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">{order.customerName}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Phone className="w-3 h-3" /> {order.phone}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {order.address}, {order.city}</p>
+                    <p className="text-xs font-mono text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    {order.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <img src={item.product.image} alt={item.product.title} className="w-8 h-8 rounded object-cover" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-foreground truncate">{item.product.title}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">{item.size} × {item.quantity}</p>
+                        </div>
+                        <p className="text-xs font-mono text-primary">৳{item.product.price * item.quantity}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-border/30 pt-3 flex items-center justify-between">
+                  <div className="flex gap-2">
+                    {(["pending", "processing", "shipped", "delivered", "cancelled"] as const).map(s => (
+                      <button key={s} onClick={() => { updateOrderStatus(order.id, s); toast.success(`Order marked as ${s}`); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-mono capitalize transition-all ${order.status === s ? statusColor[s] + " border" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="price-text text-lg">৳{order.totalPrice}</p>
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       )}
 

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingBag, Heart, Menu, X, LogOut } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, LogOut, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { Product } from "@/data/products";
-import { toast } from "sonner";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -21,6 +21,7 @@ const Navbar = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const { searchProducts } = useProducts();
   const { items: wishlistItems } = useWishlist();
+  const { user, isLoggedIn, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -29,49 +30,29 @@ const Navbar = () => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const isCustomer = !!localStorage.getItem("as_customer");
-  const isAdmin = localStorage.getItem("as_admin") === "true";
-  const isLoggedIn = isCustomer || isAdmin;
-
   const handleLogout = () => {
-    localStorage.removeItem("as_customer");
-    localStorage.removeItem("as_admin");
-    toast.success("Logged out successfully");
+    logout();
     navigate("/");
   };
 
   useEffect(() => {
-    if (searchQuery.length > 1) {
-      setSearchResults(searchProducts(searchQuery).slice(0, 6));
-    } else {
-      setSearchResults([]);
-    }
+    if (searchQuery.length > 1) setSearchResults(searchProducts(searchQuery).slice(0, 6));
+    else setSearchResults([]);
   }, [searchQuery, searchProducts]);
 
-  useEffect(() => {
-    setMobileOpen(false);
-    setSearchOpen(false);
-    setSearchQuery("");
-  }, [location]);
+  useEffect(() => { setMobileOpen(false); setSearchOpen(false); setSearchQuery(""); }, [location]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-        setSearchQuery("");
-      }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) { setSearchOpen(false); setSearchQuery(""); }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-4 left-4 right-4 z-50 glass-navbar rounded-2xl px-6 py-3"
-    >
+    <motion.nav initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: "easeOut" }}
+      className="fixed top-4 left-4 right-4 z-50 glass-navbar rounded-2xl px-6 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-heading font-bold text-gradient">AS Brand</span>
@@ -120,9 +101,7 @@ const Navbar = () => {
           <Link to="/wishlist" className="p-2 rounded-xl hover:bg-primary/10 transition-colors relative">
             <Heart className="w-5 h-5 text-foreground/70" />
             {wishlistItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">
-                {wishlistItems.length}
-              </span>
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{wishlistItems.length}</span>
             )}
           </Link>
 
@@ -130,16 +109,19 @@ const Navbar = () => {
             <ShoppingBag className="w-5 h-5 text-foreground/70" />
             {totalItems > 0 && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">
-                {totalItems}
-              </motion.span>
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{totalItems}</motion.span>
             )}
           </button>
 
           {isLoggedIn ? (
-            <button onClick={handleLogout} className="hidden md:flex items-center gap-1.5 neon-button-outline px-4 py-1.5 text-sm">
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
+            <div className="hidden md:flex items-center gap-2">
+              <Link to="/profile" className="p-2 rounded-xl hover:bg-primary/10 transition-colors" title={user?.name}>
+                <User className="w-5 h-5 text-primary" />
+              </Link>
+              <button onClick={handleLogout} className="flex items-center gap-1.5 neon-button-outline px-3 py-1.5 text-sm">
+                <LogOut className="w-4 h-4" /> Logout
+              </button>
+            </div>
           ) : (
             <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
           )}
@@ -158,9 +140,14 @@ const Navbar = () => {
                 <Link key={link.path} to={link.path} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors text-foreground/70">{link.label}</Link>
               ))}
               {isLoggedIn ? (
-                <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
-                  <LogOut className="w-4 h-4" /> Logout
-                </button>
+                <>
+                  <Link to="/profile" className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors text-foreground/70 flex items-center gap-2">
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                  <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </>
               ) : (
                 <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
               )}
