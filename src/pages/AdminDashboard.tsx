@@ -12,13 +12,17 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
-  const { orders, updateOrderStatus } = useOrders();
+  const { orders, fetchAllOrders, updateOrderStatus } = useOrders();
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "add">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!isAdmin) navigate("/owner-login");
   }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    if (isAdmin) fetchAllOrders();
+  }, [isAdmin]);
 
   const [newProduct, setNewProduct] = useState({
     title: "", category: "panjabi", year: 2025, price: 0,
@@ -41,8 +45,7 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = (id: string) => { deleteProduct(id); toast.success("Product deleted"); };
-
-  const handleLogout = () => { logout(); navigate("/login"); };
+  const handleLogout = async () => { await logout(); navigate("/login"); };
 
   const handleSaveEdit = () => {
     if (!editingProduct) return;
@@ -60,11 +63,11 @@ const AdminDashboard = () => {
   };
 
   const statusColor: Record<string, string> = {
-    pending: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-    processing: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-    shipped: "text-purple-400 bg-purple-400/10 border-purple-400/30",
-    delivered: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-    cancelled: "text-red-400 bg-red-400/10 border-red-400/30",
+    pending: "text-amber-600 bg-amber-50 border-amber-200",
+    processing: "text-blue-600 bg-blue-50 border-blue-200",
+    shipped: "text-purple-600 bg-purple-50 border-purple-200",
+    delivered: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    cancelled: "text-red-600 bg-red-50 border-red-200",
   };
 
   const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.totalPrice, 0);
@@ -75,7 +78,7 @@ const AdminDashboard = () => {
     { id: "add" as const, label: "Add Product", icon: Plus },
   ];
 
-  const inputCls = "w-full bg-secondary/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50";
+  const inputCls = "w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300";
 
   return (
     <div className="min-h-screen pt-28 px-6 max-w-7xl mx-auto pb-20">
@@ -106,7 +109,7 @@ const AdminDashboard = () => {
       <div className="flex gap-2 mb-8">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
             <t.icon className="w-4 h-4" /> {t.label}
             {t.count !== undefined && <span className="text-xs font-mono">({t.count})</span>}
           </button>
@@ -123,8 +126,8 @@ const AdminDashboard = () => {
                 <p className="text-xs text-muted-foreground font-mono">{p.category} · ৳{p.price} · Stock: {p.stock}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setEditingProduct(p)} className="p-2 rounded-lg hover:bg-primary/20 text-primary"><Edit className="w-4 h-4" /></button>
-                <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                <button onClick={() => setEditingProduct(p)} className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors duration-300"><Edit className="w-4 h-4" /></button>
+                <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors duration-300"><Trash2 className="w-4 h-4" /></button>
               </div>
             </motion.div>
           ))}
@@ -143,7 +146,7 @@ const AdminDashboard = () => {
               <motion.div key={order.id} layout className="glass-panel rounded-2xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="font-mono text-xs text-primary">{order.id}</p>
+                    <p className="font-mono text-xs text-primary">{order.id.slice(0, 8)}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-mono capitalize border flex items-center gap-1.5 ${statusColor[order.status] || ""}`}>
@@ -159,24 +162,24 @@ const AdminDashboard = () => {
                     <p className="text-xs font-mono text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</p>
                   </div>
                   <div className="space-y-1.5">
-                    {order.items.map((item, i) => (
+                    {(order.items as any[]).map((item: any, i: number) => (
                       <div key={i} className="flex items-center gap-2">
-                        <img src={item.product.image} alt={item.product.title} className="w-8 h-8 rounded object-cover" />
+                        <img src={item.product?.image} alt={item.product?.title} className="w-8 h-8 rounded object-cover" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground truncate">{item.product.title}</p>
+                          <p className="text-xs text-foreground truncate">{item.product?.title}</p>
                           <p className="text-[10px] text-muted-foreground font-mono">{item.size} × {item.quantity}</p>
                         </div>
-                        <p className="text-xs font-mono text-primary">৳{item.product.price * item.quantity}</p>
+                        <p className="text-xs font-mono text-primary">৳{(item.product?.price || 0) * item.quantity}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="border-t border-border/30 pt-3 flex items-center justify-between">
-                  <div className="flex gap-2">
+                <div className="border-t border-border pt-3 flex items-center justify-between">
+                  <div className="flex gap-2 flex-wrap">
                     {(["pending", "processing", "shipped", "delivered", "cancelled"] as const).map(s => (
-                      <button key={s} onClick={() => { updateOrderStatus(order.id, s); toast.success(`Order marked as ${s}`); }}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-mono capitalize transition-all ${order.status === s ? statusColor[s] + " border" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
+                      <button key={s} onClick={() => updateOrderStatus(order.id, s)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-mono capitalize transition-all duration-300 ${order.status === s ? statusColor[s] + " border" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
                         {s}
                       </button>
                     ))}
@@ -211,8 +214,8 @@ const AdminDashboard = () => {
 
       <AnimatePresence>
         {editingProduct && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="glass-panel rounded-2xl p-6 max-w-lg w-full space-y-4 max-h-[80vh] overflow-y-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-foreground/10 backdrop-blur-sm flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="glass-panel rounded-2xl p-6 max-w-lg w-full space-y-4 max-h-[80vh] overflow-y-auto bg-white/90 backdrop-blur-xl">
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-lg font-bold">Edit Product</h2>
                 <button onClick={() => setEditingProduct(null)}><X className="w-5 h-5" /></button>

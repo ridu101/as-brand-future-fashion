@@ -4,11 +4,7 @@ import { User, Shield, ArrowRight } from "lucide-react";
 
 const LoginPage = () => (
   <div className="min-h-screen pt-28 px-6 flex items-center justify-center">
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl w-full"
-    >
+    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-2xl w-full">
       <div className="text-center mb-12">
         <h1 className="font-heading text-4xl md:text-5xl font-bold text-gradient mb-4">Welcome to AS Brand</h1>
         <p className="text-muted-foreground">Choose how you'd like to continue</p>
@@ -16,12 +12,9 @@ const LoginPage = () => (
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Link to="/customer-login">
-          <motion.div
-            whileHover={{ y: -8, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="glass-card p-8 text-center cursor-pointer glow-behind group"
-          >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+          <motion.div whileHover={{ y: -6 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.3 }}
+            className="glass-card p-8 text-center cursor-pointer group">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-300">
               <User className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Login as Customer</h2>
@@ -33,12 +26,9 @@ const LoginPage = () => (
         </Link>
 
         <Link to="/owner-login">
-          <motion.div
-            whileHover={{ y: -8, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="glass-card p-8 text-center cursor-pointer glow-behind group"
-          >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+          <motion.div whileHover={{ y: -6 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.3 }}
+            className="glass-card p-8 text-center cursor-pointer group">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-300">
               <Shield className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Login as Owner</h2>
