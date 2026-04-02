@@ -15,6 +15,7 @@ const CartPage = () => {
   const [deliveryLocation, setDeliveryLocation] = useState<"dhaka" | "outside">("dhaka");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [orderForm, setOrderForm] = useState({ name: "", phone: "", address: "", city: "" });
   const deliveryCharge = deliveryLocation === "dhaka" ? 60 : 120;
   const finalTotal = totalPrice + deliveryCharge;
@@ -28,13 +29,14 @@ const CartPage = () => {
     setShowOrderForm(true);
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderForm.name || !orderForm.phone || !orderForm.address || !orderForm.city) {
       toast.error("Please fill in all fields");
       return;
     }
-    placeOrder({
+    setSubmitting(true);
+    const order = await placeOrder({
       customerName: orderForm.name,
       phone: orderForm.phone,
       address: orderForm.address,
@@ -44,14 +46,17 @@ const CartPage = () => {
       subtotal: totalPrice,
       deliveryCharge,
       totalPrice: finalTotal,
-      userEmail: user?.email || "",
+      userId: user?.id || "",
     });
-    setShowOrderForm(false);
-    setShowSuccess(true);
-    clearCart();
+    setSubmitting(false);
+    if (order) {
+      setShowOrderForm(false);
+      setShowSuccess(true);
+      clearCart();
+    }
   };
 
-  const inputCls = "w-full bg-secondary/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50";
+  const inputCls = "w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300";
 
   if (items.length === 0 && !showSuccess) {
     return (
@@ -65,7 +70,7 @@ const CartPage = () => {
   return (
     <div className="min-h-screen pt-28 px-6 max-w-7xl mx-auto pb-20">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <Link to="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+        <Link to="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors duration-300">
           <ArrowLeft className="w-4 h-4" /> Continue Shopping
         </Link>
         <h1 className="section-title text-foreground mb-8">Your Cart</h1>
@@ -80,12 +85,12 @@ const CartPage = () => {
                   <p className="price-text mt-1">৳{item.product.price}</p>
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => updateQuantity(item.product.id, item.size, item.quantity - 1)} className="p-1 rounded-lg bg-secondary/50 hover:bg-primary/20"><Minus className="w-3 h-3" /></button>
+                      <button onClick={() => updateQuantity(item.product.id, item.size, item.quantity - 1)} className="p-1 rounded-lg bg-secondary hover:bg-primary/10 transition-colors duration-300"><Minus className="w-3 h-3" /></button>
                       <span className="font-mono text-sm w-6 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.product.id, item.size, item.quantity + 1)} className="p-1 rounded-lg bg-secondary/50 hover:bg-primary/20"><Plus className="w-3 h-3" /></button>
+                      <button onClick={() => updateQuantity(item.product.id, item.size, item.quantity + 1)} className="p-1 rounded-lg bg-secondary hover:bg-primary/10 transition-colors duration-300"><Plus className="w-3 h-3" /></button>
                     </div>
                     <p className="price-text">৳{item.product.price * item.quantity}</p>
-                    <button onClick={() => removeItem(item.product.id, item.size)} className="p-1.5 rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => removeItem(item.product.id, item.size)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors duration-300"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -99,14 +104,14 @@ const CartPage = () => {
                 <p className="text-muted-foreground mb-2">Delivery Location</p>
                 <div className="flex gap-2">
                   {(["dhaka", "outside"] as const).map(loc => (
-                    <button key={loc} onClick={() => setDeliveryLocation(loc)} className={`flex-1 py-2 rounded-xl text-xs font-mono transition-all ${deliveryLocation === loc ? "neon-button" : "glass-panel"}`}>
+                    <button key={loc} onClick={() => setDeliveryLocation(loc)} className={`flex-1 py-2 rounded-xl text-xs font-mono transition-all duration-300 ${deliveryLocation === loc ? "neon-button" : "glass-panel hover:bg-primary/5"}`}>
                       {loc === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}
                     </button>
                   ))}
                 </div>
               </div>
               <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="font-mono">৳{deliveryCharge}</span></div>
-              <div className="border-t border-border/30 pt-3 flex justify-between">
+              <div className="border-t border-border pt-3 flex justify-between">
                 <span className="font-heading font-semibold">Total</span>
                 <span className="price-text text-xl">৳{finalTotal}</span>
               </div>
@@ -119,8 +124,8 @@ const CartPage = () => {
 
       <AnimatePresence>
         {showOrderForm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="glass-panel rounded-2xl p-6 max-w-md w-full">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-foreground/10 backdrop-blur-sm flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="glass-panel rounded-2xl p-6 max-w-md w-full bg-white/90 backdrop-blur-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-heading text-lg font-bold text-foreground">Delivery Details</h2>
                 <button onClick={() => setShowOrderForm(false)}><X className="w-5 h-5" /></button>
@@ -134,7 +139,9 @@ const CartPage = () => {
                   <div className="flex justify-between text-muted-foreground"><span>Total</span><span className="price-text">৳{finalTotal}</span></div>
                   <div className="flex justify-between text-muted-foreground mt-1"><span>Payment</span><span>Cash On Delivery</span></div>
                 </div>
-                <button type="submit" className="neon-button w-full py-3 text-sm font-heading font-semibold">Confirm Order</button>
+                <button type="submit" disabled={submitting} className="neon-button w-full py-3 text-sm font-heading font-semibold disabled:opacity-60">
+                  {submitting ? "Placing Order..." : "Confirm Order"}
+                </button>
               </form>
             </motion.div>
           </motion.div>
@@ -143,8 +150,8 @@ const CartPage = () => {
 
       <AnimatePresence>
         {showSuccess && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-8 max-w-sm w-full text-center glow-behind">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-foreground/10 backdrop-blur-sm flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-8 max-w-sm w-full text-center bg-white/90 backdrop-blur-xl">
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}>
                 <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
               </motion.div>
