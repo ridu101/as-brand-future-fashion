@@ -6,56 +6,51 @@
 
 @layer base {
   :root {
-    --background: 216 50% 4%;
-    --foreground: 200 20% 90%;
+    --background: 210 40% 98%;
+    --foreground: 220 20% 10%;
 
-    --card: 210 40% 8%;
-    --card-foreground: 200 20% 90%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 210 40% 8%;
-    --popover-foreground: 200 20% 90%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 186 100% 50%;
-    --primary-foreground: 216 50% 4%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 12%;
-    --secondary-foreground: 200 20% 90%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 20% 10%;
 
-    --muted: 210 30% 15%;
-    --muted-foreground: 210 15% 55%;
+    --muted: 210 15% 94%;
+    --muted-foreground: 220 10% 42%;
 
-    --accent: 210 60% 20%;
-    --accent-foreground: 200 20% 90%;
+    --accent: 210 30% 94%;
+    --accent-foreground: 220 20% 10%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 210 30% 18%;
-    --input: 210 30% 18%;
-    --ring: 186 100% 50%;
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 211 100% 50%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 210 40% 6%;
-    --sidebar-foreground: 200 20% 90%;
-    --sidebar-primary: 186 100% 50%;
-    --sidebar-primary-foreground: 216 50% 4%;
-    --sidebar-accent: 210 40% 12%;
-    --sidebar-accent-foreground: 200 20% 90%;
-    --sidebar-border: 210 30% 18%;
-    --sidebar-ring: 186 100% 50%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 211 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 210 20% 90%;
+    --sidebar-ring: 211 100% 50%;
 
     /* Custom tokens */
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 24px;
-    --neon-cyan: 186 100% 50%;
-    --neon-glow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
-    --neon-glow-strong: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 60px rgba(0, 240, 255, 0.2);
-    --atmosphere-1: #050B14;
-    --atmosphere-2: #0A192F;
-    --atmosphere-3: #0284C7;
-    --gradient-atmosphere: linear-gradient(135deg, #050B14 0%, #0A192F 40%, #0c2341 60%, #0A192F 80%, #050B14 100%);
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(0, 123, 255, 0.08);
+    --glass-blur: 16px;
+    --soft-shadow: 0 10px 30px rgba(0, 120, 255, 0.08);
+    --gradient-bg: linear-gradient(135deg, #f9fcff 0%, #eef6ff 40%, #ffffff 100%);
   }
 }
 
@@ -66,7 +61,7 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
-    background: var(--gradient-atmosphere);
+    background: var(--gradient-bg);
     min-height: 100vh;
   }
 }
@@ -77,51 +72,49 @@
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    border-top-color: rgba(255, 255, 255, 0.15);
-    border-left-color: rgba(255, 255, 255, 0.12);
+    box-shadow: var(--soft-shadow);
   }
 
   .glass-card {
     @apply glass-panel rounded-2xl;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .glass-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: var(--neon-glow);
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 120, 255, 0.12);
   }
 
   .glass-navbar {
     @apply glass-panel;
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
   }
 
   .neon-button {
     @apply relative overflow-hidden rounded-xl font-heading font-semibold tracking-wide;
-    background: linear-gradient(135deg, hsl(186 100% 50%) 0%, hsl(200 100% 50%) 100%);
-    color: hsl(216 50% 4%);
+    background: linear-gradient(135deg, #007BFF 0%, #00C6FF 100%);
+    color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
   }
 
   .neon-button:hover {
-    box-shadow: var(--neon-glow-strong);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
     transform: translateY(-2px);
   }
 
   .neon-button-outline {
     @apply relative overflow-hidden rounded-xl font-heading font-semibold tracking-wide;
     background: transparent;
-    border: 1px solid hsl(186 100% 50% / 0.5);
-    color: hsl(186 100% 50%);
+    border: 1px solid #007BFF;
+    color: #007BFF;
     transition: all 0.3s ease;
   }
 
   .neon-button-outline:hover {
-    background: hsl(186 100% 50% / 0.1);
-    border-color: hsl(186 100% 50%);
-    box-shadow: var(--neon-glow);
+    background: rgba(0, 123, 255, 0.06);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
   }
 
   .glow-behind {
@@ -131,15 +124,15 @@
   .glow-behind::before {
     content: '';
     position: absolute;
-    inset: -20px;
-    background: radial-gradient(circle at center, rgba(0, 240, 255, 0.08) 0%, transparent 70%);
+    inset: -10px;
+    background: radial-gradient(circle at center, rgba(0, 123, 255, 0.04) 0%, transparent 70%);
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(186 100% 60%), hsl(200 100% 70%), hsl(186 100% 50%));
+    background: linear-gradient(135deg, #007BFF, #00C6FF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -147,14 +140,7 @@
 
   .price-text {
     @apply font-mono font-bold;
-    color: hsl(186 100% 50%);
-  }
-
-  .atmosphere-bg {
-    background: var(--gradient-atmosphere);
-    position: fixed;
-    inset: 0;
-    z-index: -2;
+    color: #007BFF;
   }
 
   .section-title {
@@ -167,24 +153,13 @@
   50% { transform: translateY(-10px); }
 }
 
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.5; }
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 8s ease infinite;
 }
 
 .animate-pulse-glow {

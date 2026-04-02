@@ -27,18 +27,18 @@ const ProfilePage = () => {
 
   if (!user) return null;
 
-  const userOrders = getOrdersByUser(user.email);
+  const userOrders = getOrdersByUser();
   const statusColor: Record<string, string> = {
-    pending: "text-yellow-400 bg-yellow-400/10",
-    processing: "text-blue-400 bg-blue-400/10",
-    shipped: "text-purple-400 bg-purple-400/10",
-    delivered: "text-green-400 bg-green-400/10",
-    cancelled: "text-red-400 bg-red-400/10",
+    pending: "text-amber-600 bg-amber-50 border-amber-200",
+    processing: "text-blue-600 bg-blue-50 border-blue-200",
+    shipped: "text-purple-600 bg-purple-50 border-purple-200",
+    delivered: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    cancelled: "text-red-600 bg-red-50 border-red-200",
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!editForm.name || !editForm.email) { toast.error("Fields cannot be empty"); return; }
-    updateProfile({ name: editForm.name, email: editForm.email });
+    await updateProfile({ name: editForm.name, email: editForm.email });
     setEditing(false);
   };
 
@@ -49,13 +49,12 @@ const ProfilePage = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-28 px-6 max-w-7xl mx-auto pb-20">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        {/* Profile Header */}
-        <div className="glass-card p-8 mb-8 glow-behind">
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center">
-              <User className="w-10 h-10 text-primary" />
+    <div className="min-h-screen pt-28 px-6 max-w-5xl mx-auto pb-20">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div className="glass-card p-6 md:p-8 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <User className="w-8 h-8 text-primary" />
             </div>
             <div>
               <h1 className="font-heading text-2xl font-bold text-foreground">{user.name}</h1>
@@ -69,18 +68,16 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto">
           {tabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-300 ${activeTab === t.id ? "neon-button" : "glass-panel text-muted-foreground hover:text-foreground"}`}>
               <t.icon className="w-4 h-4" /> {t.label}
-              {t.count !== undefined && <span className="ml-1 text-xs font-mono">({t.count})</span>}
+              {t.count !== undefined && <span className="text-xs font-mono">({t.count})</span>}
             </button>
           ))}
         </div>
 
-        {/* Orders Tab */}
         {activeTab === "orders" && (
           <div className="space-y-4">
             {userOrders.length === 0 ? (
@@ -92,31 +89,31 @@ const ProfilePage = () => {
               </div>
             ) : (
               userOrders.map(order => (
-                <motion.div key={order.id} layout className="glass-panel rounded-2xl p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <motion.div key={order.id} layout className="glass-panel rounded-2xl p-5">
+                  <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-mono text-xs text-muted-foreground">{order.id}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{new Date(order.createdAt).toLocaleString()}</p>
+                      <p className="font-mono text-xs text-primary">{order.id.slice(0, 8)}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-mono capitalize ${statusColor[order.status] || ""}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-mono capitalize border ${statusColor[order.status] || ""}`}>
                       {order.status}
                     </span>
                   </div>
-                  <div className="space-y-2 mb-4">
-                    {order.items.map((item, i) => (
+                  <div className="space-y-2 mb-3">
+                    {(order.items as any[]).map((item: any, i: number) => (
                       <div key={i} className="flex items-center gap-3">
-                        <img src={item.product.image} alt={item.product.title} className="w-10 h-10 rounded-lg object-cover" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{item.product.title}</p>
-                          <p className="text-xs text-muted-foreground font-mono">Size: {item.size} × {item.quantity}</p>
+                        <img src={item.product?.image} alt={item.product?.title} className="w-10 h-10 rounded-lg object-cover" />
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground">{item.product?.title}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{item.size} × {item.quantity}</p>
                         </div>
-                        <p className="text-sm font-mono text-primary">৳{item.product.price * item.quantity}</p>
+                        <p className="text-sm font-mono text-primary">৳{(item.product?.price || 0) * item.quantity}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-border/30 pt-3 flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</p>
-                    <p className="price-text">৳{order.totalPrice}</p>
+                  <div className="border-t border-border pt-3 flex justify-between text-sm">
+                    <span className="text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</span>
+                    <span className="price-text font-bold">৳{order.totalPrice}</span>
                   </div>
                 </motion.div>
               ))
@@ -124,7 +121,6 @@ const ProfilePage = () => {
           </div>
         )}
 
-        {/* Wishlist Tab */}
         {activeTab === "wishlist" && (
           wishlistItems.length === 0 ? (
             <div className="glass-panel rounded-2xl p-12 text-center">
@@ -133,13 +129,12 @@ const ProfilePage = () => {
               <Link to="/shop" className="neon-button px-6 py-2.5 text-sm inline-block mt-4">Browse Shop</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {wishlistItems.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
             </div>
           )
         )}
 
-        {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="glass-panel rounded-2xl p-6 max-w-lg">
             <div className="flex items-center justify-between mb-6">
@@ -153,36 +148,25 @@ const ProfilePage = () => {
             {editing ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                  <label className="text-xs text-muted-foreground mb-1 block font-mono">Name</label>
                   <input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
-                    className="w-full bg-secondary/50 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+                    className="w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Email</label>
+                  <label className="text-xs text-muted-foreground mb-1 block font-mono">Email</label>
                   <input value={editForm.email} onChange={e => setEditForm(p => ({ ...p, email: e.target.value }))}
-                    className="w-full bg-secondary/50 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+                    className="w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300" />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={handleSaveProfile} className="neon-button px-4 py-2 text-sm flex items-center gap-1.5">
-                    <Save className="w-4 h-4" /> Save
-                  </button>
+                  <button onClick={handleSaveProfile} className="neon-button px-4 py-2 text-sm flex items-center gap-1.5"><Save className="w-4 h-4" /> Save</button>
                   <button onClick={() => setEditing(false)} className="neon-button-outline px-4 py-2 text-sm">Cancel</button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Name</p>
-                  <p className="text-sm text-foreground font-medium mt-0.5">{user.name}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm text-foreground font-medium mt-0.5">{user.email}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Role</p>
-                  <p className="text-sm text-foreground font-medium mt-0.5 capitalize">{user.role}</p>
-                </div>
+                <div><p className="text-xs text-muted-foreground font-mono">Name</p><p className="text-sm text-foreground font-medium mt-0.5">{user.name}</p></div>
+                <div><p className="text-xs text-muted-foreground font-mono">Email</p><p className="text-sm text-foreground font-medium mt-0.5">{user.email}</p></div>
+                <div><p className="text-xs text-muted-foreground font-mono">Role</p><p className="text-sm text-foreground font-medium mt-0.5 capitalize">{user.role}</p></div>
               </div>
             )}
           </div>

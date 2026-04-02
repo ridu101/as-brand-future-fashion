@@ -31,8 +31,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -71,7 +71,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <motion.nav initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: "easeOut" }}
+    <motion.nav initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed top-4 left-4 right-4 z-50 glass-navbar rounded-2xl px-6 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Link to="/" className="flex items-center gap-2">
@@ -87,10 +87,10 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div ref={searchRef} className="relative">
-            <button onClick={() => setSearchOpen(!searchOpen)} className="p-2 rounded-xl hover:bg-primary/10 transition-colors duration-300">
-              <Search className="w-5 h-5 text-foreground/70" />
+            <button onClick={() => setSearchOpen(!searchOpen)} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300">
+              <Search className="w-5 h-5 text-foreground/60" />
             </button>
             <AnimatePresence>
               {searchOpen && (
@@ -98,12 +98,12 @@ const Navbar = () => {
                   transition={{ duration: 0.2 }}
                   className="absolute right-0 top-12 w-80 glass-panel rounded-2xl p-4">
                   <input type="text" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
-                    className="w-full bg-secondary/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+                    className="w-full bg-white/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20" />
                   {searchResults.length > 0 && (
                     <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
                       {searchResults.map(p => (
                         <Link key={p.id} to={`/product/${p.id}`}
-                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-primary/10 transition-colors duration-300"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300"
                           onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>
                           <img src={p.image} alt={p.title} className="w-10 h-10 rounded-lg object-cover" />
                           <div>
@@ -119,15 +119,15 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
-          <Link to={isLoggedIn ? "/wishlist" : "#"} onClick={handleWishlistClick} className="p-2 rounded-xl hover:bg-primary/10 transition-colors duration-300 relative">
-            <Heart className="w-5 h-5 text-foreground/70" />
+          <Link to={isLoggedIn ? "/wishlist" : "#"} onClick={handleWishlistClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
+            <Heart className="w-5 h-5 text-foreground/60" />
             {wishlistItems.length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{wishlistItems.length}</span>
             )}
           </Link>
 
-          <button onClick={handleCartClick} className="p-2 rounded-xl hover:bg-primary/10 transition-colors duration-300 relative">
-            <ShoppingBag className="w-5 h-5 text-foreground/70" />
+          <button onClick={handleCartClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
+            <ShoppingBag className="w-5 h-5 text-foreground/60" />
             {totalItems > 0 && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{totalItems}</motion.span>
@@ -136,7 +136,7 @@ const Navbar = () => {
 
           {isLoggedIn ? (
             <div className="hidden md:flex items-center gap-2">
-              <Link to="/profile" className="p-2 rounded-xl hover:bg-primary/10 transition-colors duration-300" title={user?.name}>
+              <Link to="/profile" className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300" title={user?.name}>
                 <User className="w-5 h-5 text-primary" />
               </Link>
               <button onClick={handleLogout} className="flex items-center gap-1.5 neon-button-outline px-3 py-1.5 text-sm">
@@ -144,10 +144,10 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <Link to="/login" className="hidden md:block neon-button-outline px-4 py-1.5 text-sm">Login</Link>
+            <Link to="/login" className="hidden md:block neon-button px-4 py-1.5 text-sm">Login</Link>
           )}
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-xl hover:bg-primary/10">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-xl hover:bg-primary/5">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -159,11 +159,11 @@ const Navbar = () => {
             transition={{ duration: 0.3 }} className="md:hidden overflow-hidden mt-4">
             <div className="flex flex-col gap-2 py-2">
               {navLinks.map(link => (
-                <Link key={link.path} to={link.path} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors duration-300 text-foreground/70">{link.label}</Link>
+                <Link key={link.path} to={link.path} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/5 transition-colors duration-300 text-foreground/70">{link.label}</Link>
               ))}
               {isLoggedIn ? (
                 <>
-                  <Link to="/profile" className="px-4 py-2 rounded-xl text-sm hover:bg-primary/10 transition-colors duration-300 text-foreground/70 flex items-center gap-2">
+                  <Link to="/profile" className="px-4 py-2 rounded-xl text-sm hover:bg-primary/5 transition-colors duration-300 text-foreground/70 flex items-center gap-2">
                     <User className="w-4 h-4" /> Profile
                   </Link>
                   <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
@@ -171,7 +171,7 @@ const Navbar = () => {
                   </button>
                 </>
               ) : (
-                <Link to="/login" className="neon-button-outline px-4 py-2 text-sm text-center mt-2">Login</Link>
+                <Link to="/login" className="neon-button px-4 py-2 text-sm text-center mt-2">Login</Link>
               )}
             </div>
           </motion.div>

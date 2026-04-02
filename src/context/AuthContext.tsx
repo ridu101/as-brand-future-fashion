@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
 export interface User {
+  id: string;
   name: string;
   email: string;
   role: "customer" | "admin";
@@ -9,107 +12,109 @@ export interface User {
   createdAt: string;
 }
 
-interface RegisteredUser {
-  name: string;
-  email: string;
-  password: string;
-  createdAt: string;
-}
-
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
-  loginCustomer: (name: string, email: string) => void;
-  registerCustomer: (name: string, email: string, password: string) => boolean;
-  loginWithCredentials: (email: string, password: string) => boolean;
-  loginAdmin: () => void;
-  logout: () => void;
-  updateProfile: (data: Partial<User>) => void;
+  loading: boolean;
+  loginWithEmail: (email: string, password: string) => Promise<boolean>;
+  registerWithEmail: (name: string, email: string, password: string) => Promise<boolean>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
   requireAuth: (action?: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const mapUser = async (su: SupabaseUser): Promise<User> => {
+  // Check if user is admin
+  const { data: roles } = await supabase.rpc("has_role", { _user_id: su.id, _role: "admin" });
+  
+  return {
+    id: su.id,
+    name: su.user_metadata?.full_name || su.user_metadata?.name || su.email?.split("@")[0] || "",
+    email: su.email || "",
+    role: roles ? "admin" : "customer",
+    avatar: su.user_metadata?.avatar_url,
+    createdAt: su.created_at,
+  };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const saved = localStorage.getItem("as_auth_user");
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("as_auth_user", JSON.stringify(user));
-      localStorage.setItem("as_auth_token", btoa(JSON.stringify({ email: user.email, role: user.role, exp: Date.now() + 86400000 })));
-    } else {
-      localStorage.removeItem("as_auth_user");
-      localStorage.removeItem("as_auth_token");
-      localStorage.removeItem("as_admin");
-      localStorage.removeItem("as_customer");
-    }
-  }, [user]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const mapped = await mapUser(session.user);
+        setUser(mapped);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
-  const getRegisteredUsers = (): RegisteredUser[] => {
-    try {
-      return JSON.parse(localStorage.getItem("as_registered_users") || "[]");
-    } catch { return []; }
-  };
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const mapped = await mapUser(session.user);
+        setUser(mapped);
+      }
+      setLoading(false);
+    });
 
-  const saveRegisteredUsers = (users: RegisteredUser[]) => {
-    localStorage.setItem("as_registered_users", JSON.stringify(users));
-  };
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const registerCustomer = useCallback((name: string, email: string, password: string): boolean => {
-    const users = getRegisteredUsers();
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      toast.error("An account with this email already exists");
+  const loginWithEmail = useCallback(async (email: string, password: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast.error(error.message);
       return false;
     }
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return false;
-    }
-    const newUser: RegisteredUser = { name, email: email.toLowerCase(), password, createdAt: new Date().toISOString() };
-    saveRegisteredUsers([...users, newUser]);
-    setUser({ name, email: email.toLowerCase(), role: "customer", createdAt: newUser.createdAt });
+    toast.success("Welcome back!");
     return true;
   }, []);
 
-  const loginWithCredentials = useCallback((email: string, password: string): boolean => {
-    const users = getRegisteredUsers();
-    const found = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (!found) {
-      toast.error("Invalid email or password");
+  const registerWithEmail = useCallback(async (name: string, email: string, password: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    });
+    if (error) {
+      toast.error(error.message);
       return false;
     }
-    setUser({ name: found.name, email: found.email, role: "customer", createdAt: found.createdAt });
+    toast.success("Account created successfully!");
     return true;
   }, []);
 
-  const loginCustomer = useCallback((name: string, email: string) => {
-    setUser({ name, email, role: "customer", createdAt: new Date().toISOString() });
+  const loginWithGoogle = useCallback(async () => {
+    const { lovable } = await import("@/integrations/lovable");
+    const result = await lovable.auth.signInWithOAuth("google");
+    if (result.error) {
+      toast.error("Google login failed");
+    }
   }, []);
 
-  const loginAdmin = useCallback(() => {
-    setUser({ name: "Azharul Islam", email: "admin@asbrand.com", role: "admin", createdAt: new Date().toISOString() });
-  }, []);
-
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    // Clear all session data
-    localStorage.removeItem("as_auth_user");
-    localStorage.removeItem("as_auth_token");
-    localStorage.removeItem("as_admin");
-    localStorage.removeItem("as_customer");
     toast.success("Logged out successfully");
   }, []);
 
-  const updateProfile = useCallback((data: Partial<User>) => {
+  const updateProfile = useCallback(async (data: Partial<User>) => {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({
+      name: data.name,
+      email: data.email,
+    }).eq("user_id", user.id);
+    if (error) { toast.error("Update failed"); return; }
     setUser(prev => prev ? { ...prev, ...data } : null);
     toast.success("Profile updated!");
-  }, []);
+  }, [user]);
 
   const requireAuth = useCallback((action?: string): boolean => {
     if (user) return true;
@@ -122,8 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{
-      user, isLoggedIn: !!user, isAdmin: user?.role === "admin",
-      loginCustomer, registerCustomer, loginWithCredentials, loginAdmin,
+      user, isLoggedIn: !!user, isAdmin: user?.role === "admin", loading,
+      loginWithEmail, registerWithEmail, loginWithGoogle,
       logout, updateProfile, requireAuth,
     }}>
       {children}

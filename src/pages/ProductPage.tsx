@@ -49,7 +49,7 @@ const ProductPage = () => {
   return (
     <div className="min-h-screen pt-28 px-6 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-        <Link to={`/${product.category}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
+        <Link to={`/${product.category}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors duration-300 mb-8">
           <ArrowLeft className="w-4 h-4" /> Back
         </Link>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -73,16 +73,16 @@ const ProductPage = () => {
               <div className="flex gap-2">
                 {product.sizes.map(s => (
                   <button key={s} onClick={() => setSelectedSize(s)}
-                    className={`px-4 py-2 rounded-xl font-mono text-sm transition-all ${selectedSize === s ? "neon-button" : "glass-panel hover:border-primary/50"}`}>{s}</button>
+                    className={`px-4 py-2 rounded-xl font-mono text-sm transition-all duration-300 ${selectedSize === s ? "neon-button" : "glass-panel hover:border-primary/30"}`}>{s}</button>
                 ))}
               </div>
             </div>
             <div className="mt-6 flex items-center gap-4">
               <p className="text-sm font-heading font-semibold">Quantity</p>
               <div className="flex items-center gap-3 glass-panel rounded-xl px-3 py-1">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-1 hover:text-primary transition-colors"><Minus className="w-4 h-4" /></button>
+                <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-1 hover:text-primary transition-colors duration-300"><Minus className="w-4 h-4" /></button>
                 <span className="font-mono w-8 text-center">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} className="p-1 hover:text-primary transition-colors"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => setQty(qty + 1)} className="p-1 hover:text-primary transition-colors duration-300"><Plus className="w-4 h-4" /></button>
               </div>
             </div>
             <div className="mt-8 flex gap-3">
@@ -90,7 +90,7 @@ const ProductPage = () => {
                 <ShoppingBag className="w-5 h-5" /> Add To Cart
               </button>
               <button onClick={handleWishlist}
-                className={`glass-panel rounded-xl px-4 transition-colors ${wishlisted ? "bg-primary/20 text-primary" : "hover:bg-primary/10"}`}>
+                className={`glass-panel rounded-xl px-4 transition-colors duration-300 ${wishlisted ? "bg-primary/10 text-primary border-primary/30" : "hover:bg-primary/5"}`}>
                 <Heart className={`w-5 h-5 ${wishlisted ? "fill-primary" : ""}`} />
               </button>
             </div>

@@ -20,7 +20,7 @@ const Index = () => {
     initial: { opacity: 0, y: 40 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: "-80px" },
-    transition: { duration: 0.7 },
+    transition: { duration: 0.6 },
   };
 
   const handleNewsletter = (e: React.FormEvent) => {
@@ -32,11 +32,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-24">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.08] bg-[radial-gradient(circle,hsl(var(--primary))_0%,transparent_70%)] animate-pulse-glow" />
-        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="text-center max-w-3xl mx-auto relative z-10">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.5 }} className="inline-flex items-center gap-2 glass-panel rounded-full px-4 py-1.5 mb-8">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-[0.08] bg-[radial-gradient(circle,#007BFF_0%,transparent_70%)] animate-pulse-glow" />
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="text-center max-w-3xl mx-auto relative z-10">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.4 }} className="inline-flex items-center gap-2 glass-panel rounded-full px-4 py-1.5 mb-8">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-xs font-mono text-primary uppercase tracking-widest">New Collection 2025</span>
           </motion.div>
@@ -45,7 +44,7 @@ const Index = () => {
             <span className="text-gradient">Your Style</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Premium fashion curated by AS Brand. Where futuristic design meets timeless elegance.
+            Premium fashion curated by AS Brand. Where modern design meets timeless elegance.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/shop" className="neon-button px-8 py-3.5 text-base flex items-center gap-2">Shop Now <ArrowRight className="w-4 h-4" /></Link>
@@ -54,7 +53,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Trending Now */}
       <section className="px-6 py-20 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Trending Now" subtitle="Most popular picks this season" link="/trending" />
@@ -64,7 +62,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Latest Collection */}
       <section className="px-6 py-20 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Latest Collection" subtitle="Fresh arrivals just for you" link="/shop" />
@@ -74,7 +71,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Seasonal Collections */}
       <section className="px-6 py-20 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <h2 className="section-title text-foreground text-center mb-12">Seasonal Collections</h2>
@@ -86,7 +82,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Featured Categories */}
       <section className="px-6 py-20 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Featured Categories" subtitle="Browse by category" link="/categories" />
@@ -94,11 +89,11 @@ const Index = () => {
             {categories.map((cat, i) => (
               <motion.div key={cat.slug} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.05 }}>
                 <Link to={`/${cat.slug}`} className="block group">
-                  <div className="glass-card overflow-hidden glow-behind relative">
+                  <div className="glass-card overflow-hidden relative">
                     <div className="aspect-[3/5] overflow-hidden">
-                      <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+                      <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="font-heading font-bold text-lg text-foreground">{cat.name}</h3>
                       <span className="text-xs text-primary font-mono mt-1 inline-flex items-center gap-1">Explore <ArrowRight className="w-3 h-3" /></span>
@@ -111,44 +106,16 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Instagram Gallery */}
-      <section className="px-6 py-20 max-w-7xl mx-auto">
-        <motion.div {...sectionAnim}>
-          <h2 className="section-title text-foreground text-center mb-4">@asbrand</h2>
-          <p className="text-muted-foreground text-center mb-8">Follow our style on Instagram</p>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <motion.div key={i} whileHover={{ scale: 1.05 }} className="aspect-square overflow-hidden rounded-xl glass-card">
-                <img
-                  src={`https://images.unsplash.com/photo-${[
-                    "1441986300917-64674bd600d8",
-                    "1490481651871-ab68de25d43d",
-                    "1445205170230-053b83016050",
-                    "1483985988355-763728e1935b",
-                    "1509631179647-0177331693ae",
-                    "1515886657613-9f3515b0c78f",
-                  ][i]}?w=300&h=300&fit=crop`}
-                  alt={`Style ${i + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Reviews */}
       <section className="px-6 py-20 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <h2 className="section-title text-foreground text-center mb-10">Customer Reviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: "Rahim K.", text: "Amazing quality and futuristic design! AS Brand never disappoints.", rating: 5 },
+              { name: "Rahim K.", text: "Amazing quality and modern design! AS Brand never disappoints.", rating: 5 },
               { name: "Nusrat A.", text: "The panjabi collection is stunning. Fast delivery too.", rating: 5 },
-              { name: "Tanvir H.", text: "Best online shopping experience. Love the glassmorphism vibes!", rating: 4 },
+              { name: "Tanvir H.", text: "Best online shopping experience. Love the clean design!", rating: 4 },
             ].map((review, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="glass-card p-6 glow-behind">
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="glass-card p-6">
                 <div className="flex gap-1 mb-3">
                   {Array.from({ length: review.rating }).map((_, j) => (
                     <Star key={j} className="w-4 h-4 fill-primary text-primary" />
@@ -162,20 +129,14 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Newsletter */}
       <section className="px-6 py-20 max-w-3xl mx-auto">
-        <motion.div {...sectionAnim} className="glass-card p-8 md:p-12 text-center glow-behind">
+        <motion.div {...sectionAnim} className="glass-card p-8 md:p-12 text-center">
           <Mail className="w-10 h-10 text-primary mx-auto mb-4" />
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-3">Stay Updated</h2>
           <p className="text-sm text-muted-foreground mb-6">Subscribe to get exclusive offers and new arrivals.</p>
           <form onSubmit={handleNewsletter} className="flex gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="flex-1 bg-secondary/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50"
-            />
+            <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)}
+              className="flex-1 bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300" />
             <button type="submit" className="neon-button px-6 py-3 text-sm">Subscribe</button>
           </form>
         </motion.div>
