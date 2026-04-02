@@ -1,25 +1,46 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 const CustomerLoginPage = () => {
   const navigate = useNavigate();
-  const { loginCustomer } = useAuth();
+  const { loginCustomer, registerCustomer, loginWithCredentials } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (isRegister && !form.name.trim()) errs.name = "Name is required";
+    if (!form.email.trim()) errs.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Invalid email format";
+    if (!form.password) errs.password = "Password is required";
+    else if (form.password.length < 6) errs.password = "Minimum 6 characters";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.password || (isRegister && !form.name)) {
-      toast.error("Please fill in all fields");
-      return;
+    if (!validate()) return;
+
+    if (isRegister) {
+      const success = registerCustomer(form.name.trim(), form.email.trim(), form.password);
+      if (success) {
+        toast.success("Account created successfully! Welcome to AS Brand!");
+        navigate("/shop");
+      }
+    } else {
+      const success = loginWithCredentials(form.email.trim(), form.password);
+      if (success) {
+        toast.success("Welcome back!");
+        navigate("/shop");
+      }
     }
-    loginCustomer(form.name || "Customer", form.email);
-    toast.success(isRegister ? "Account created successfully!" : "Welcome back!");
-    navigate("/shop");
   };
 
   const handleGoogleLogin = () => {
@@ -30,15 +51,15 @@ const CustomerLoginPage = () => {
 
   return (
     <div className="min-h-screen pt-28 px-6 flex items-center justify-center">
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full">
-        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-md w-full">
+        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors duration-300">
           <ArrowLeft className="w-4 h-4" /> Back
         </Link>
         <div className="glass-card p-8 glow-behind">
           <h1 className="font-heading text-2xl font-bold text-foreground mb-2">{isRegister ? "Create Account" : "Customer Login"}</h1>
           <p className="text-sm text-muted-foreground mb-8">{isRegister ? "Join AS Brand today" : "Welcome back to AS Brand"}</p>
           <button onClick={handleGoogleLogin}
-            className="w-full glass-panel rounded-xl py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:bg-primary/10 transition-colors mb-6">
+            className="w-full glass-panel rounded-xl py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:bg-primary/10 transition-colors duration-300 mb-6">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -54,27 +75,39 @@ const CustomerLoginPage = () => {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input type="text" placeholder="Full Name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full bg-secondary/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+              <div>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input type="text" placeholder="Full Name" value={form.name} onChange={e => { setForm(p => ({ ...p, name: e.target.value })); setErrors(p => ({ ...p, name: "" })); }}
+                    className={`w-full bg-secondary/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 transition-all duration-300 ${errors.name ? "ring-1 ring-destructive" : "focus:ring-primary/50"}`} />
+                </div>
+                {errors.name && <p className="text-xs text-destructive mt-1 ml-1">{errors.name}</p>}
               </div>
             )}
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="email" placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className="w-full bg-secondary/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+            <div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="email" placeholder="Email" value={form.email} onChange={e => { setForm(p => ({ ...p, email: e.target.value })); setErrors(p => ({ ...p, email: "" })); }}
+                  className={`w-full bg-secondary/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 transition-all duration-300 ${errors.email ? "ring-1 ring-destructive" : "focus:ring-primary/50"}`} />
+              </div>
+              {errors.email && <p className="text-xs text-destructive mt-1 ml-1">{errors.email}</p>}
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="password" placeholder="Password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                className="w-full bg-secondary/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50" />
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type={showPassword ? "text" : "password"} placeholder="Password" value={form.password} onChange={e => { setForm(p => ({ ...p, password: e.target.value })); setErrors(p => ({ ...p, password: "" })); }}
+                  className={`w-full bg-secondary/50 rounded-xl pl-10 pr-10 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 transition-all duration-300 ${errors.password ? "ring-1 ring-destructive" : "focus:ring-primary/50"}`} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs text-destructive mt-1 ml-1">{errors.password}</p>}
             </div>
             <button type="submit" className="neon-button w-full py-3 text-sm font-heading font-semibold">{isRegister ? "Create Account" : "Login"}</button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-6">
             {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button onClick={() => setIsRegister(!isRegister)} className="text-primary hover:underline">{isRegister ? "Login" : "Register"}</button>
+            <button onClick={() => { setIsRegister(!isRegister); setErrors({}); }} className="text-primary hover:underline">{isRegister ? "Login" : "Register"}</button>
           </p>
         </div>
       </motion.div>
