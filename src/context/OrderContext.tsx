@@ -68,18 +68,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const placeOrder = useCallback(async (data: Omit<Order, "id" | "status" | "createdAt">): Promise<Order | null> => {
     if (!user) return null;
-    const { data: inserted, error } = await supabase.from("orders").insert({
+    const insertData = {
       user_id: user.id,
       customer_name: data.customerName,
       phone: data.phone,
       address: data.address,
       city: data.city,
       delivery_type: data.deliveryType,
-      items: data.items as unknown as Record<string, unknown>[],
+      items: JSON.parse(JSON.stringify(data.items)),
       subtotal: data.subtotal,
       delivery_charge: data.deliveryCharge,
       total_price: data.totalPrice,
-    }).select().single();
+    };
+    const { data: inserted, error } = await supabase.from("orders").insert(insertData).select().single();
 
     if (error) { toast.error("Failed to place order"); return null; }
 
