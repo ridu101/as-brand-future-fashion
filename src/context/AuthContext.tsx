@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export interface User {
@@ -10,11 +9,20 @@ export interface User {
   createdAt: string;
 }
 
+interface RegisteredUser {
+  name: string;
+  email: string;
+  password: string;
+  createdAt: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
   loginCustomer: (name: string, email: string) => void;
+  registerCustomer: (name: string, email: string, password: string) => boolean;
+  loginWithCredentials: (email: string, password: string) => boolean;
   loginAdmin: () => void;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
@@ -34,15 +42,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (user) {
       localStorage.setItem("as_auth_user", JSON.stringify(user));
-      // Keep legacy keys for backward compat
-      if (user.role === "admin") localStorage.setItem("as_admin", "true");
-      else localStorage.setItem("as_customer", JSON.stringify({ name: user.name, email: user.email }));
+      localStorage.setItem("as_auth_token", btoa(JSON.stringify({ email: user.email, role: user.role, exp: Date.now() + 86400000 })));
     } else {
       localStorage.removeItem("as_auth_user");
+      localStorage.removeItem("as_auth_token");
       localStorage.removeItem("as_admin");
       localStorage.removeItem("as_customer");
     }
   }, [user]);
+
+  const getRegisteredUsers = (): RegisteredUser[] => {
+    try {
+      return JSON.parse(localStorage.getItem("as_registered_users") || "[]");
+    } catch { return []; }
+  };
+
+  const saveRegisteredUsers = (users: RegisteredUser[]) => {
+    localStorage.setItem("as_registered_users", JSON.stringify(users));
+  };
+
+  const registerCustomer = useCallback((name: string, email: string, password: string): boolean => {
+    const users = getRegisteredUsers();
+    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      toast.error("An account with this email already exists");
+      return false;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+    const newUser: RegisteredUser = { name, email: email.toLowerCase(), password, createdAt: new Date().toISOString() };
+    saveRegisteredUsers([...users, newUser]);
+    setUser({ name, email: email.toLowerCase(), role: "customer", createdAt: newUser.createdAt });
+    return true;
+  }, []);
+
+  const loginWithCredentials = useCallback((email: string, password: string): boolean => {
+    const users = getRegisteredUsers();
+    const found = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    if (!found) {
+      toast.error("Invalid email or password");
+      return false;
+    }
+    setUser({ name: found.name, email: found.email, role: "customer", createdAt: found.createdAt });
+    return true;
+  }, []);
 
   const loginCustomer = useCallback((name: string, email: string) => {
     setUser({ name, email, role: "customer", createdAt: new Date().toISOString() });
@@ -54,6 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(() => {
     setUser(null);
+    // Clear all session data
+    localStorage.removeItem("as_auth_user");
+    localStorage.removeItem("as_auth_token");
+    localStorage.removeItem("as_admin");
+    localStorage.removeItem("as_customer");
     toast.success("Logged out successfully");
   }, []);
 
@@ -65,7 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const requireAuth = useCallback((action?: string): boolean => {
     if (user) return true;
     toast.error(`⚠️ Please login first${action ? ` to ${action}` : " to continue"}`, {
-      action: { label: "Login", onClick: () => window.location.href = "/login" },
+      duration: 4000,
+      action: { label: "Login", onClick: () => { window.location.href = "/login"; } },
     });
     return false;
   }, [user]);
@@ -73,7 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user, isLoggedIn: !!user, isAdmin: user?.role === "admin",
-      loginCustomer, loginAdmin, logout, updateProfile, requireAuth,
+      loginCustomer, registerCustomer, loginWithCredentials, loginAdmin,
+      logout, updateProfile, requireAuth,
     }}>
       {children}
     </AuthContext.Provider>

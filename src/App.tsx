@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ProductProvider } from "@/context/ProductContext";
 import { OrderProvider } from "@/context/OrderContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
@@ -52,13 +53,13 @@ const App = () => (
                     <Route path="/trending" element={<TrendingPage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/customer-login" element={<CustomerLoginPage />} />
                     <Route path="/owner-login" element={<OwnerLoginPage />} />
-                    <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
+                    <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                     <Route path="/product/:id" element={<ProductPage />} />
                     <Route path="/panjabi" element={<CategoryPage />} />
                     <Route path="/shirt" element={<CategoryPage />} />
