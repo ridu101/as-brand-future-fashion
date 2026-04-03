@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Shield, User, Lock, ArrowLeft } from "lucide-react";
@@ -7,19 +7,33 @@ import { toast } from "sonner";
 
 const OwnerLoginPage = () => {
   const navigate = useNavigate();
-  const { loginWithEmail } = useAuth();
+  const { loginWithEmail, isAdmin, isLoggedIn, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!loading && isLoggedIn) {
+      navigate(isAdmin ? "/admin-dashboard" : "/", { replace: true });
+    }
+  }, [isAdmin, isLoggedIn, loading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     if (!email || !password) { toast.error("Please fill in all fields"); return; }
+
     setSubmitting(true);
-    const ok = await loginWithEmail(email, password);
+    const result = await loginWithEmail(email, password);
     setSubmitting(false);
-    if (ok) navigate("/admin-dashboard");
+
+    if (result.success) {
+      navigate(result.redirectTo || "/", { replace: true });
+    }
   };
+
+  const inputClassName =
+    "glass-panel w-full rounded-xl border border-border px-10 py-3 text-sm text-foreground outline-none transition-all duration-300 focus:border-primary focus:ring-1 focus:ring-primary/20";
 
   return (
     <div className="min-h-screen pt-28 px-6 flex items-center justify-center">
@@ -37,12 +51,12 @@ const OwnerLoginPage = () => {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input type="email" placeholder="Admin Email" value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full bg-white/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300" />
+                className={inputClassName} />
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)}
-                className="w-full bg-white/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300" />
+                className={inputClassName} />
             </div>
             <button type="submit" disabled={submitting} className="neon-button w-full py-3 text-sm font-heading font-semibold disabled:opacity-60">
               {submitting ? "Logging in..." : "Access Dashboard"}

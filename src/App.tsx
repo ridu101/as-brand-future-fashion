@@ -23,6 +23,7 @@ import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import CustomerLoginPage from "./pages/CustomerLoginPage";
 import OwnerLoginPage from "./pages/OwnerLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -55,6 +56,7 @@ const App = () => (
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
                     <Route path="/customer-login" element={<CustomerLoginPage />} />
                     <Route path="/owner-login" element={<OwnerLoginPage />} />
                     <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
