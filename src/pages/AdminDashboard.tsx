@@ -240,7 +240,8 @@ const AdminDashboard = () => {
                 <button onClick={() => setEditingProduct(null)}><X className="w-5 h-5" /></button>
               </div>
               <input value={editingProduct.title} onChange={e => setEditingProduct(p => p ? { ...p, title: e.target.value } : null)} className={inputCls} />
-              <input type="number" value={editingProduct.price} onChange={e => setEditingProduct(p => p ? { ...p, price: Number(e.target.value) } : null)} className={inputCls} />
+              <input type="number" placeholder="Selling Price" value={editingProduct.price} onChange={e => setEditingProduct(p => p ? { ...p, price: Number(e.target.value) } : null)} className={inputCls} />
+              <input type="number" placeholder="Cost Price (hidden from customers)" value={editingProduct.costPrice || ""} onChange={e => setEditingProduct(p => p ? { ...p, costPrice: Number(e.target.value) } : null)} className={inputCls} />
               <input type="number" value={editingProduct.stock} onChange={e => setEditingProduct(p => p ? { ...p, stock: Number(e.target.value) } : null)} className={inputCls} />
               <textarea value={editingProduct.description} onChange={e => setEditingProduct(p => p ? { ...p, description: e.target.value } : null)} className={`${inputCls} min-h-[80px]`} />
               <button onClick={handleSaveEdit} className="neon-button px-6 py-2.5 text-sm flex items-center gap-2">
