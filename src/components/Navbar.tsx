@@ -145,8 +145,17 @@ const Navbar = () => {
 
           {isLoggedIn ? (
             <div className="hidden md:flex items-center gap-2">
-              <Link to={profileLink} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 flex items-center gap-1.5" title={profileLabel}>
-                {isAdmin ? <LayoutDashboard className="w-5 h-5 text-primary" /> : <User className="w-5 h-5 text-primary" />}
+              <Link to={profileLink} className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-primary/5 transition-colors duration-300" title={profileLabel}>
+                {user?.avatar ? (
+                  <Avatar className="w-8 h-8 border-2 border-primary/20 shadow-sm">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">{user.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                ) : isAdmin ? (
+                  <LayoutDashboard className="w-5 h-5 text-primary" />
+                ) : (
+                  <User className="w-5 h-5 text-primary" />
+                )}
                 {isAdmin && <span className="text-sm font-medium text-primary">Dashboard</span>}
               </Link>
               <button onClick={handleLogout} className="flex items-center gap-1.5 neon-button-outline px-3 py-1.5 text-sm">
