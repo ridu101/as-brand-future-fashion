@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Product } from "@/data/products";
 import { ShoppingBag, Heart, Zap, Eye } from "lucide-react";
