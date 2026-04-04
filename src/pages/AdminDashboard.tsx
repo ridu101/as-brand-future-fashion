@@ -216,8 +216,9 @@ const AdminDashboard = () => {
           <select value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} className={inputCls}>
             {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
           </select>
-          <div className="grid grid-cols-2 gap-4">
-            <input type="number" placeholder="Price" value={newProduct.price || ""} onChange={e => setNewProduct(p => ({ ...p, price: Number(e.target.value) }))} className={inputCls} required />
+          <div className="grid grid-cols-3 gap-4">
+            <input type="number" placeholder="Selling Price" value={newProduct.price || ""} onChange={e => setNewProduct(p => ({ ...p, price: Number(e.target.value) }))} className={inputCls} required />
+            <input type="number" placeholder="Cost Price (hidden)" value={newProduct.costPrice || ""} onChange={e => setNewProduct(p => ({ ...p, costPrice: Number(e.target.value) }))} className={inputCls} />
             <input type="number" placeholder="Year" value={newProduct.year} onChange={e => setNewProduct(p => ({ ...p, year: Number(e.target.value) }))} className={inputCls} />
           </div>
           <input placeholder="Sizes (comma separated)" value={newProduct.sizes} onChange={e => setNewProduct(p => ({ ...p, sizes: e.target.value }))} className={inputCls} />
