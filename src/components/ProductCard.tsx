@@ -22,13 +22,8 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
     toast.success(`${product.title} added to cart`, { description: `Size: ${product.sizes[0]}` });
   };
 
-  const handleBuyNow = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!requireAuth("buy this product")) return;
-    addItem(product, product.sizes[0]);
-    navigate("/cart");
-  };
+
+
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
