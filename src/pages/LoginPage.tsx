@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
@@ -21,12 +21,9 @@ const LoginPage = () => {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-
     if (!email.trim()) nextErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Enter a valid email address";
-
     if (!password) nextErrors.password = "Password is required";
-
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -34,11 +31,9 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting || !validate()) return;
-
     setSubmitting(true);
     const result = await loginWithEmail(email, password);
     setSubmitting(false);
-
     if (result.success) {
       navigate(result.redirectTo || "/", { replace: true });
     }
@@ -46,7 +41,6 @@ const LoginPage = () => {
 
   const handleGoogleLogin = async () => {
     if (submitting) return;
-
     setSubmitting(true);
     await loginWithGoogle();
     setSubmitting(false);
@@ -92,16 +86,9 @@ const LoginPage = () => {
             <div>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setErrors((prev) => ({ ...prev, email: "" }));
-                  }}
-                  className={inputClassName(!!errors.email)}
-                />
+                <input type="email" placeholder="Email" value={email}
+                  onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: "" })); }}
+                  className={inputClassName(!!errors.email)} />
               </div>
               {errors.email && <p className="text-xs text-destructive mt-1 ml-1">{errors.email}</p>}
             </div>
@@ -109,21 +96,11 @@ const LoginPage = () => {
             <div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: "" }));
-                  }}
-                  className={`${inputClassName(!!errors.password)} pr-10`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-300"
-                >
+                <input type={showPassword ? "text" : "password"} placeholder="Password" value={password}
+                  onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: "" })); }}
+                  className={`${inputClassName(!!errors.password)} pr-10`} />
+                <button type="button" onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-300">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -135,14 +112,11 @@ const LoginPage = () => {
             </button>
           </form>
 
-          <div className="mt-6 space-y-3 text-center text-sm text-muted-foreground">
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>
-              Don&apos;t have an account? {" "}
+              Don&apos;t have an account?{" "}
               <Link to="/register" className="text-primary hover:underline font-medium">Create one</Link>
             </p>
-            <Link to="/owner-login" className="inline-flex items-center gap-2 text-primary hover:underline font-medium">
-              <Shield className="w-4 h-4" /> Admin login
-            </Link>
           </div>
         </div>
       </motion.div>
