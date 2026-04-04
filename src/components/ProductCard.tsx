@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Product } from "@/data/products";
-import { ShoppingBag, Heart, Zap, Eye, CreditCard } from "lucide-react";
+import { ShoppingBag, Heart, Zap, Eye } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
