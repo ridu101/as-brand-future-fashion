@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingBag, Heart, Menu, X, LogOut, User } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -22,7 +22,7 @@ const Navbar = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const { searchProducts } = useProducts();
   const { items: wishlistItems } = useWishlist();
-  const { user, isLoggedIn, requireAuth, logout } = useAuth();
+  const { user, isLoggedIn, isAdmin, requireAuth, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -69,6 +69,9 @@ const Navbar = () => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const profileLink = isAdmin ? "/admin-dashboard" : "/profile";
+  const profileLabel = isAdmin ? "Admin Dashboard" : "Profile";
 
   return (
     <motion.nav initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}
@@ -119,25 +122,31 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
-          <Link to={isLoggedIn ? "/wishlist" : "#"} onClick={handleWishlistClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
-            <Heart className="w-5 h-5 text-foreground/60" />
-            {wishlistItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{wishlistItems.length}</span>
-            )}
-          </Link>
+          {/* Hide wishlist & cart icons for admin */}
+          {!isAdmin && (
+            <>
+              <Link to={isLoggedIn ? "/wishlist" : "#"} onClick={handleWishlistClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
+                <Heart className="w-5 h-5 text-foreground/60" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{wishlistItems.length}</span>
+                )}
+              </Link>
 
-          <button onClick={handleCartClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
-            <ShoppingBag className="w-5 h-5 text-foreground/60" />
-            {totalItems > 0 && (
-              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{totalItems}</motion.span>
-            )}
-          </button>
+              <button onClick={handleCartClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
+                <ShoppingBag className="w-5 h-5 text-foreground/60" />
+                {totalItems > 0 && (
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{totalItems}</motion.span>
+                )}
+              </button>
+            </>
+          )}
 
           {isLoggedIn ? (
             <div className="hidden md:flex items-center gap-2">
-              <Link to="/profile" className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300" title={user?.name}>
-                <User className="w-5 h-5 text-primary" />
+              <Link to={profileLink} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 flex items-center gap-1.5" title={profileLabel}>
+                {isAdmin ? <LayoutDashboard className="w-5 h-5 text-primary" /> : <User className="w-5 h-5 text-primary" />}
+                {isAdmin && <span className="text-sm font-medium text-primary">Dashboard</span>}
               </Link>
               <button onClick={handleLogout} className="flex items-center gap-1.5 neon-button-outline px-3 py-1.5 text-sm">
                 <LogOut className="w-4 h-4" /> Logout
@@ -163,8 +172,9 @@ const Navbar = () => {
               ))}
               {isLoggedIn ? (
                 <>
-                  <Link to="/profile" className="px-4 py-2 rounded-xl text-sm hover:bg-primary/5 transition-colors duration-300 text-foreground/70 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Profile
+                  <Link to={profileLink} className="px-4 py-2 rounded-xl text-sm hover:bg-primary/5 transition-colors duration-300 text-foreground/70 flex items-center gap-2">
+                    {isAdmin ? <LayoutDashboard className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                    {profileLabel}
                   </Link>
                   <button onClick={handleLogout} className="neon-button-outline px-4 py-2 text-sm text-center mt-2 flex items-center justify-center gap-1.5">
                     <LogOut className="w-4 h-4" /> Logout

@@ -24,9 +24,8 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import CustomerLoginPage from "./pages/CustomerLoginPage";
-import OwnerLoginPage from "./pages/OwnerLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
+// Removed OwnerLoginPage and CustomerLoginPage - single login page for all users
 import WishlistPage from "./pages/WishlistPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
@@ -57,8 +56,6 @@ const App = () => (
                     <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/customer-login" element={<CustomerLoginPage />} />
-                    <Route path="/owner-login" element={<OwnerLoginPage />} />
                     <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
                     <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
