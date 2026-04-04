@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   }, [isAdmin]);
 
   const [newProduct, setNewProduct] = useState({
-    title: "", category: "panjabi", year: 2025, price: 0,
+    title: "", category: "panjabi", year: 2025, price: 0, costPrice: 0,
     sizes: "S,M,L,XL", stock: 10, description: "", image: ""
   });
 
