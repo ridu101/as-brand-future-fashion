@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { format, isThisMonth } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Plus, Package, ShoppingCart, Trash2, Edit, LogOut, X, Save, Clock, Truck, CheckCircle2, XCircle, Phone, MapPin } from "lucide-react";
 import { Product, categories } from "@/data/products";
@@ -17,7 +18,7 @@ const AdminDashboard = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) navigate("/owner-login");
+    if (!isAdmin) navigate("/login");
   }, [isAdmin, navigate]);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ const AdminDashboard = () => {
   }, [isAdmin]);
 
   const [newProduct, setNewProduct] = useState({
-    title: "", category: "panjabi", year: 2025, price: 0,
+    title: "", category: "panjabi", year: 2025, price: 0, costPrice: 0,
     sizes: "S,M,L,XL", stock: 10, description: "", image: ""
   });
 
@@ -34,12 +35,13 @@ const AdminDashboard = () => {
     const p: Product = {
       id: `custom-${Date.now()}`,
       title: newProduct.title, category: newProduct.category, year: newProduct.year, price: newProduct.price,
+      costPrice: newProduct.costPrice || 0,
       sizes: newProduct.sizes.split(",").map(s => s.trim()), stock: newProduct.stock,
       description: newProduct.description,
       image: newProduct.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
     };
     addProduct(p);
-    setNewProduct({ title: "", category: "panjabi", year: 2025, price: 0, sizes: "S,M,L,XL", stock: 10, description: "", image: "" });
+    setNewProduct({ title: "", category: "panjabi", year: 2025, price: 0, costPrice: 0, sizes: "S,M,L,XL", stock: 10, description: "", image: "" });
     toast.success("Product added successfully!");
     setActiveTab("products");
   };
@@ -70,7 +72,21 @@ const AdminDashboard = () => {
     cancelled: "text-red-600 bg-red-50 border-red-200",
   };
 
-  const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.totalPrice, 0);
+  const activeOrders = orders.filter(o => o.status !== "cancelled");
+  const totalSell = activeOrders.reduce((s, o) => s + o.totalPrice, 0);
+
+  const monthlyOrders = activeOrders.filter(o => isThisMonth(new Date(o.createdAt)));
+  const monthlySales = monthlyOrders.reduce((s, o) => s + o.totalPrice, 0);
+
+  const monthlyProfit = monthlyOrders.reduce((s, o) => {
+    const items = o.items as any[];
+    const orderCost = items.reduce((c: number, item: any) => {
+      const product = products.find(p => p.id === item.product?.id);
+      const costPrice = product?.costPrice || Math.round((item.product?.price || 0) * 0.5);
+      return c + costPrice * (item.quantity || 1);
+    }, 0);
+    return s + (o.totalPrice - orderCost);
+  }, 0);
 
   const tabs = [
     { id: "products" as const, label: "Products", icon: Package },
@@ -92,12 +108,14 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {[
           { label: "Products", value: products.length },
           { label: "Categories", value: categories.length },
           { label: "Orders", value: orders.length },
-          { label: "Revenue", value: `৳${totalRevenue}` },
+          { label: "Total Sell", value: `৳${totalSell}` },
+          { label: "Monthly Sales", value: `৳${monthlySales}` },
+          { label: "Monthly Profit", value: `৳${monthlyProfit}` },
         ].map(s => (
           <div key={s.label} className="glass-panel rounded-2xl p-4 text-center">
             <p className="text-2xl font-heading font-bold text-primary">{s.value}</p>
@@ -198,8 +216,9 @@ const AdminDashboard = () => {
           <select value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} className={inputCls}>
             {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
           </select>
-          <div className="grid grid-cols-2 gap-4">
-            <input type="number" placeholder="Price" value={newProduct.price || ""} onChange={e => setNewProduct(p => ({ ...p, price: Number(e.target.value) }))} className={inputCls} required />
+          <div className="grid grid-cols-3 gap-4">
+            <input type="number" placeholder="Selling Price" value={newProduct.price || ""} onChange={e => setNewProduct(p => ({ ...p, price: Number(e.target.value) }))} className={inputCls} required />
+            <input type="number" placeholder="Cost Price (hidden)" value={newProduct.costPrice || ""} onChange={e => setNewProduct(p => ({ ...p, costPrice: Number(e.target.value) }))} className={inputCls} />
             <input type="number" placeholder="Year" value={newProduct.year} onChange={e => setNewProduct(p => ({ ...p, year: Number(e.target.value) }))} className={inputCls} />
           </div>
           <input placeholder="Sizes (comma separated)" value={newProduct.sizes} onChange={e => setNewProduct(p => ({ ...p, sizes: e.target.value }))} className={inputCls} />
@@ -221,7 +240,8 @@ const AdminDashboard = () => {
                 <button onClick={() => setEditingProduct(null)}><X className="w-5 h-5" /></button>
               </div>
               <input value={editingProduct.title} onChange={e => setEditingProduct(p => p ? { ...p, title: e.target.value } : null)} className={inputCls} />
-              <input type="number" value={editingProduct.price} onChange={e => setEditingProduct(p => p ? { ...p, price: Number(e.target.value) } : null)} className={inputCls} />
+              <input type="number" placeholder="Selling Price" value={editingProduct.price} onChange={e => setEditingProduct(p => p ? { ...p, price: Number(e.target.value) } : null)} className={inputCls} />
+              <input type="number" placeholder="Cost Price (hidden from customers)" value={editingProduct.costPrice || ""} onChange={e => setEditingProduct(p => p ? { ...p, costPrice: Number(e.target.value) } : null)} className={inputCls} />
               <input type="number" value={editingProduct.stock} onChange={e => setEditingProduct(p => p ? { ...p, stock: Number(e.target.value) } : null)} className={inputCls} />
               <textarea value={editingProduct.description} onChange={e => setEditingProduct(p => p ? { ...p, description: e.target.value } : null)} className={`${inputCls} min-h-[80px]`} />
               <button onClick={handleSaveEdit} className="neon-button px-6 py-2.5 text-sm flex items-center gap-2">

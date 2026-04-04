@@ -1,7 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Product } from "@/data/products";
-import { ShoppingBag, Heart, Zap, Eye, CreditCard } from "lucide-react";
+import { ShoppingBag, Heart, Zap, Eye } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
@@ -12,7 +12,7 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { requireAuth, isAdmin } = useAuth();
   const wishlisted = isInWishlist(product.id);
-  const navigate = useNavigate();
+  
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -22,13 +22,8 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
     toast.success(`${product.title} added to cart`, { description: `Size: ${product.sizes[0]}` });
   };
 
-  const handleBuyNow = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!requireAuth("buy this product")) return;
-    addItem(product, product.sizes[0]);
-    navigate("/cart");
-  };
+
+
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,10 +65,6 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
                 <button onClick={handleQuickAdd}
                   className="flex-1 py-2.5 text-sm flex items-center justify-center gap-2 rounded-xl font-heading font-semibold neon-button">
                   <ShoppingBag className="w-4 h-4" /> Add to Cart
-                </button>
-                <button onClick={handleBuyNow}
-                  className="flex-1 py-2.5 text-sm flex items-center justify-center gap-2 rounded-xl font-heading font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-                  <CreditCard className="w-4 h-4" /> Buy Now
                 </button>
                 <Link to={`/product/${product.id}`} onClick={e => e.stopPropagation()}
                   className="p-2.5 rounded-xl backdrop-blur-md bg-white/60 border border-border hover:bg-primary/5 hover:border-primary/20 transition-all duration-300">
