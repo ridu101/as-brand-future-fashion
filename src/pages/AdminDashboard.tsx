@@ -18,7 +18,7 @@ const AdminDashboard = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) navigate("/owner-login");
+    if (!isAdmin) navigate("/login");
   }, [isAdmin, navigate]);
 
   useEffect(() => {
