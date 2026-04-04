@@ -71,10 +71,6 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
                   className="flex-1 py-2.5 text-sm flex items-center justify-center gap-2 rounded-xl font-heading font-semibold neon-button">
                   <ShoppingBag className="w-4 h-4" /> Add to Cart
                 </button>
-                <button onClick={handleBuyNow}
-                  className="flex-1 py-2.5 text-sm flex items-center justify-center gap-2 rounded-xl font-heading font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-                  <CreditCard className="w-4 h-4" /> Buy Now
-                </button>
                 <Link to={`/product/${product.id}`} onClick={e => e.stopPropagation()}
                   className="p-2.5 rounded-xl backdrop-blur-md bg-white/60 border border-border hover:bg-primary/5 hover:border-primary/20 transition-all duration-300">
                   <Eye className="w-4 h-4" />
