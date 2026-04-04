@@ -12,7 +12,7 @@ const ProductCard = ({ product, index = 0 }: { product: Product; index?: number 
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { requireAuth, isAdmin } = useAuth();
   const wishlisted = isInWishlist(product.id);
-  const navigate = useNavigate();
+  
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
