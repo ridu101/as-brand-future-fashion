@@ -108,12 +108,14 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {[
           { label: "Products", value: products.length },
           { label: "Categories", value: categories.length },
           { label: "Orders", value: orders.length },
-          { label: "Revenue", value: `৳${totalRevenue}` },
+          { label: "Total Sell", value: `৳${totalSell}` },
+          { label: "Monthly Sales", value: `৳${monthlySales}` },
+          { label: "Monthly Profit", value: `৳${monthlyProfit}` },
         ].map(s => (
           <div key={s.label} className="glass-panel rounded-2xl p-4 text-center">
             <p className="text-2xl font-heading font-bold text-primary">{s.value}</p>

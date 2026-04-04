@@ -109,10 +109,12 @@ const generateProducts = (): Product[] => {
     for (let i = 0; i < 10; i++) {
       const price = Math.round((minP + Math.random() * (maxP - minP)) / 10) * 10;
       const seasonal = i < 2 ? "eid" : i < 4 ? "winter" : i < 6 ? "summer" : undefined;
+      const costPrice = Math.round(price * (0.4 + Math.random() * 0.2));
       products.push({
         id: `p${id++}`,
         title: names[i] || `${cat.name} Item ${i + 1}`,
         price,
+        costPrice,
         category: cat.slug,
         year: 2024 + (i % 2),
         sizes: sizeSets[i % sizeSets.length],
