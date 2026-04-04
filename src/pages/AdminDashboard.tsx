@@ -72,7 +72,21 @@ const AdminDashboard = () => {
     cancelled: "text-red-600 bg-red-50 border-red-200",
   };
 
-  const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.totalPrice, 0);
+  const activeOrders = orders.filter(o => o.status !== "cancelled");
+  const totalSell = activeOrders.reduce((s, o) => s + o.totalPrice, 0);
+
+  const monthlyOrders = activeOrders.filter(o => isThisMonth(new Date(o.createdAt)));
+  const monthlySales = monthlyOrders.reduce((s, o) => s + o.totalPrice, 0);
+
+  const monthlyProfit = monthlyOrders.reduce((s, o) => {
+    const items = o.items as any[];
+    const orderCost = items.reduce((c: number, item: any) => {
+      const product = products.find(p => p.id === item.product?.id);
+      const costPrice = product?.costPrice || Math.round((item.product?.price || 0) * 0.5);
+      return c + costPrice * (item.quantity || 1);
+    }, 0);
+    return s + (o.totalPrice - orderCost);
+  }, 0);
 
   const tabs = [
     { id: "products" as const, label: "Products", icon: Package },
