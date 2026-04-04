@@ -35,12 +35,13 @@ const AdminDashboard = () => {
     const p: Product = {
       id: `custom-${Date.now()}`,
       title: newProduct.title, category: newProduct.category, year: newProduct.year, price: newProduct.price,
+      costPrice: newProduct.costPrice || 0,
       sizes: newProduct.sizes.split(",").map(s => s.trim()), stock: newProduct.stock,
       description: newProduct.description,
       image: newProduct.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
     };
     addProduct(p);
-    setNewProduct({ title: "", category: "panjabi", year: 2025, price: 0, sizes: "S,M,L,XL", stock: 10, description: "", image: "" });
+    setNewProduct({ title: "", category: "panjabi", year: 2025, price: 0, costPrice: 0, sizes: "S,M,L,XL", stock: 10, description: "", image: "" });
     toast.success("Product added successfully!");
     setActiveTab("products");
   };
