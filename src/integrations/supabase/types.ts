@@ -25,6 +25,9 @@ export type Database = {
           id: string
           items: Json
           phone: string
+          return_reason: string | null
+          return_requested_at: string | null
+          return_status: string | null
           status: string
           subtotal: number
           total_price: number
@@ -41,6 +44,9 @@ export type Database = {
           id?: string
           items?: Json
           phone: string
+          return_reason?: string | null
+          return_requested_at?: string | null
+          return_status?: string | null
           status?: string
           subtotal?: number
           total_price?: number
@@ -57,6 +63,9 @@ export type Database = {
           id?: string
           items?: Json
           phone?: string
+          return_reason?: string | null
+          return_requested_at?: string | null
+          return_status?: string | null
           status?: string
           subtotal?: number
           total_price?: number

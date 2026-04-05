@@ -286,13 +286,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const { lovable } = await import("@/integrations/lovable");
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
+    try {
+      const { lovable } = await import("@/integrations/lovable");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
 
-    if (result.error) {
-      toast.error(getFriendlyAuthError(result.error.message));
+      if (result.error) {
+        toast.error(getFriendlyAuthError(result.error.message));
+        return;
+      }
+
+      if (result.redirected) {
+        return;
+      }
+    } catch (err: any) {
+      toast.error("Google login failed. Please try again.");
     }
   }, []);
 
