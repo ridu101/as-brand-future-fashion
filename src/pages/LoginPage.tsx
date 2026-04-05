@@ -14,7 +14,8 @@ const LoginPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && isLoggedIn) {
+    if (loading) return;
+    if (isLoggedIn) {
       navigate(isAdmin ? "/admin-dashboard" : "/", { replace: true });
     }
   }, [isAdmin, isLoggedIn, loading, navigate]);
