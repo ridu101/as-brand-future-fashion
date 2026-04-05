@@ -16,6 +16,9 @@ export interface Order {
   deliveryCharge: number;
   totalPrice: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  returnStatus?: string | null;
+  returnReason?: string | null;
+  returnRequestedAt?: string | null;
   createdAt: string;
   userId: string;
 }
@@ -27,6 +30,7 @@ interface OrderContextType {
   getOrdersByUser: () => Order[];
   fetchAllOrders: () => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order["status"]) => Promise<void>;
+  requestReturn: (orderId: string, reason: string) => Promise<void>;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -35,6 +39,25 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { user, isAdmin } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const mapOrder = (o: any): Order => ({
+    id: o.id,
+    customerName: o.customer_name,
+    phone: o.phone,
+    address: o.address,
+    city: o.city,
+    deliveryType: o.delivery_type as "dhaka" | "outside",
+    items: o.items as unknown as CartItem[],
+    subtotal: o.subtotal,
+    deliveryCharge: o.delivery_charge,
+    totalPrice: o.total_price,
+    status: o.status as Order["status"],
+    returnStatus: o.return_status,
+    returnReason: o.return_reason,
+    returnRequestedAt: o.return_requested_at,
+    createdAt: o.created_at,
+    userId: o.user_id,
+  });
 
   const fetchOrders = useCallback(async () => {
     if (!user) { setOrders([]); return; }
@@ -45,21 +68,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setOrders(data.map(o => ({
-        id: o.id,
-        customerName: o.customer_name,
-        phone: o.phone,
-        address: o.address,
-        city: o.city,
-        deliveryType: o.delivery_type as "dhaka" | "outside",
-        items: o.items as unknown as CartItem[],
-        subtotal: o.subtotal,
-        deliveryCharge: o.delivery_charge,
-        totalPrice: o.total_price,
-        status: o.status as Order["status"],
-        createdAt: o.created_at,
-        userId: o.user_id,
-      })));
+      setOrders(data.map(mapOrder));
     }
     setLoading(false);
   }, [user]);
@@ -83,22 +92,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const { data: inserted, error } = await supabase.from("orders").insert(insertData).select().single();
 
     if (error) { toast.error("Failed to place order"); return null; }
-
-    const order: Order = {
-      id: inserted.id,
-      customerName: inserted.customer_name,
-      phone: inserted.phone,
-      address: inserted.address,
-      city: inserted.city,
-      deliveryType: inserted.delivery_type as "dhaka" | "outside",
-      items: inserted.items as unknown as CartItem[],
-      subtotal: inserted.subtotal,
-      deliveryCharge: inserted.delivery_charge,
-      totalPrice: inserted.total_price,
-      status: inserted.status as Order["status"],
-      createdAt: inserted.created_at,
-      userId: inserted.user_id,
-    };
+    const order = mapOrder(inserted);
     setOrders(prev => [order, ...prev]);
     return order;
   }, [user]);
@@ -119,8 +113,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     toast.success(`Order marked as ${status}`);
   }, []);
 
+  const requestReturn = useCallback(async (orderId: string, reason: string) => {
+    const { error } = await supabase.from("orders").update({
+      return_status: "requested",
+      return_reason: reason,
+      return_requested_at: new Date().toISOString(),
+    } as any).eq("id", orderId);
+    if (error) { toast.error("Failed to submit return request"); return; }
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, returnStatus: "requested", returnReason: reason, returnRequestedAt: new Date().toISOString() } : o));
+    toast.success("Return request submitted. Please send the product via courier. Return shipping cost is borne by the customer.");
+  }, []);
+
   return (
-    <OrderContext.Provider value={{ orders, loading, placeOrder, getOrdersByUser, fetchAllOrders, updateOrderStatus }}>
+    <OrderContext.Provider value={{ orders, loading, placeOrder, getOrdersByUser, fetchAllOrders, updateOrderStatus, requestReturn }}>
       {children}
     </OrderContext.Provider>
   );

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +25,12 @@ import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminDashboard from "./pages/AdminDashboard";
-// Removed OwnerLoginPage and CustomerLoginPage - single login page for all users
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminProductsByCategory from "./pages/admin/AdminProductsByCategory";
+import AdminAddProduct from "./pages/admin/AdminAddProduct";
+import AdminReturns from "./pages/admin/AdminReturns";
+import AdminSells from "./pages/admin/AdminSells";
 import WishlistPage from "./pages/WishlistPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
@@ -57,6 +62,12 @@ const App = () => (
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
+                    <Route path="/admin/orders" element={<ProtectedRoute adminOnly><AdminOrders /></ProtectedRoute>} />
+                    <Route path="/admin/products" element={<ProtectedRoute adminOnly><AdminProducts /></ProtectedRoute>} />
+                    <Route path="/admin/products/add" element={<ProtectedRoute adminOnly><AdminAddProduct /></ProtectedRoute>} />
+                    <Route path="/admin/products/:category" element={<ProtectedRoute adminOnly><AdminProductsByCategory /></ProtectedRoute>} />
+                    <Route path="/admin/returns" element={<ProtectedRoute adminOnly><AdminReturns /></ProtectedRoute>} />
+                    <Route path="/admin/sells" element={<ProtectedRoute adminOnly><AdminSells /></ProtectedRoute>} />
                     <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                     <Route path="/product/:id" element={<ProductPage />} />
@@ -68,7 +79,7 @@ const App = () => (
                     <Route path="/polo" element={<CategoryPage />} />
                     <Route path="/hoodie" element={<CategoryPage />} />
                     <Route path="/jacket" element={<CategoryPage />} />
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                   <Footer />
                 </BrowserRouter>
