@@ -32,27 +32,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/");
-  };
+  const handleLogout = async () => { await logout(); navigate("/"); };
 
   const handleWishlistClick = (e: React.MouseEvent) => {
-    if (!isLoggedIn) {
-      e.preventDefault();
-      toast.error("⚠️ Please login first to view wishlist", {
-        action: { label: "Login", onClick: () => navigate("/login") },
-      });
-    }
+    if (!isLoggedIn) { e.preventDefault(); toast.error("⚠️ Please login first to view wishlist", { action: { label: "Login", onClick: () => navigate("/login") } }); }
   };
 
   const handleCartClick = () => {
-    if (!isLoggedIn) {
-      toast.error("⚠️ Please login first to view cart", {
-        action: { label: "Login", onClick: () => navigate("/login") },
-      });
-      return;
-    }
+    if (!isLoggedIn) { toast.error("⚠️ Please login first to view cart", { action: { label: "Login", onClick: () => navigate("/login") } }); return; }
     setIsCartOpen(true);
   };
 
@@ -64,9 +51,7 @@ const Navbar = () => {
   useEffect(() => { setMobileOpen(false); setSearchOpen(false); setSearchQuery(""); }, [location]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) { setSearchOpen(false); setSearchQuery(""); }
-    };
+    const handler = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) { setSearchOpen(false); setSearchQuery(""); } };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
@@ -79,7 +64,7 @@ const Navbar = () => {
       className="fixed top-4 left-4 right-4 z-50 glass-navbar rounded-2xl px-6 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-heading font-bold text-gradient">AS Brand</span>
+          <span className="text-2xl font-heading font-bold text-gradient">Clothify</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
@@ -99,8 +84,7 @@ const Navbar = () => {
             <AnimatePresence>
               {searchOpen && (
                 <motion.div initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 top-12 w-80 glass-panel rounded-2xl p-4">
+                  transition={{ duration: 0.2 }} className="absolute right-0 top-12 w-80 glass-panel rounded-2xl p-4">
                   <input type="text" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
                     className="w-full bg-white/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20" />
                   {searchResults.length > 0 && (
@@ -123,7 +107,6 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
-          {/* Hide wishlist & cart icons for admin */}
           {!isAdmin && (
             <>
               <Link to={isLoggedIn ? "/wishlist" : "#"} onClick={handleWishlistClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
@@ -132,7 +115,6 @@ const Navbar = () => {
                   <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-mono font-bold">{wishlistItems.length}</span>
                 )}
               </Link>
-
               <button onClick={handleCartClick} className="p-2 rounded-xl hover:bg-primary/5 transition-colors duration-300 relative">
                 <ShoppingBag className="w-5 h-5 text-foreground/60" />
                 {totalItems > 0 && (

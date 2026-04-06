@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, TrendingUp, DollarSign, Calendar, BarChart3 } from "lucide-react";
-import { isThisMonth } from "date-fns";
+import { isThisMonth, format, subMonths, isSameMonth } from "date-fns";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useOrders } from "@/context/OrderContext";
 import { useProducts } from "@/context/ProductContext";
 import { useAuth } from "@/context/AuthContext";
@@ -36,6 +37,19 @@ const AdminSells = () => {
   const totalProfit = calcProfit(deliveredOrders);
   const monthlyProfit = calcProfit(monthlyDelivered);
 
+  // Chart data: last 6 months
+  const chartData = useMemo(() => {
+    const data = [];
+    for (let i = 5; i >= 0; i--) {
+      const month = subMonths(new Date(), i);
+      const monthOrders = deliveredOrders.filter(o => isSameMonth(new Date(o.createdAt), month));
+      const sales = monthOrders.reduce((s, o) => s + o.totalPrice, 0);
+      const profit = calcProfit(monthOrders);
+      data.push({ name: format(month, "MMM"), sales, profit });
+    }
+    return data;
+  }, [deliveredOrders, products]);
+
   const metrics = [
     { label: "Total Sell", value: `৳${totalSell.toLocaleString()}`, icon: TrendingUp, color: "from-blue-500/10 to-cyan-500/10", iconColor: "text-blue-500" },
     { label: "Monthly Sell", value: `৳${monthlySell.toLocaleString()}`, icon: Calendar, color: "from-emerald-500/10 to-teal-500/10", iconColor: "text-emerald-500" },
@@ -52,18 +66,45 @@ const AdminSells = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
         {metrics.map((m, i) => (
-          <motion.div
-            key={m.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <motion.div key={m.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: i * 0.1 }}
-            className={`glass-card p-8 bg-gradient-to-br ${m.color}`}
-          >
+            className={`glass-card p-8 bg-gradient-to-br ${m.color}`}>
             <m.icon className={`w-8 h-8 ${m.iconColor} mb-3`} />
             <p className="text-sm text-muted-foreground font-medium">{m.label}</p>
             <p className="text-3xl font-heading font-bold text-foreground mt-1">{m.value}</p>
           </motion.div>
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+          className="glass-panel rounded-2xl p-6">
+          <h2 className="font-heading text-lg font-bold text-foreground mb-4">Monthly Sales (Last 6 Months)</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 20%, 90%)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 42%)" />
+              <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 42%)" />
+              <Tooltip contentStyle={{ background: "rgba(255,255,255,0.9)", border: "1px solid hsl(210,20%,90%)", borderRadius: 12 }} />
+              <Line type="monotone" dataKey="sales" stroke="#007BFF" strokeWidth={2} dot={{ fill: "#007BFF", r: 4 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+          className="glass-panel rounded-2xl p-6">
+          <h2 className="font-heading text-lg font-bold text-foreground mb-4">Monthly Profit (Last 6 Months)</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 20%, 90%)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 42%)" />
+              <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 42%)" />
+              <Tooltip contentStyle={{ background: "rgba(255,255,255,0.9)", border: "1px solid hsl(210,20%,90%)", borderRadius: 12 }} />
+              <Bar dataKey="profit" fill="#007BFF" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
       </div>
 
       <div className="glass-panel rounded-2xl p-6">

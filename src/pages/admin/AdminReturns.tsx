@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, RotateCcw } from "lucide-react";
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle } from "lucide-react";
 import { useOrders } from "@/context/OrderContext";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminReturns = () => {
   const navigate = useNavigate();
@@ -13,7 +15,23 @@ const AdminReturns = () => {
   useEffect(() => { if (!isAdmin) navigate("/login"); }, [isAdmin]);
   useEffect(() => { if (isAdmin) fetchAllOrders(); }, [isAdmin]);
 
-  const returnOrders = orders.filter(o => (o as any).returnStatus);
+  const returnOrders = orders.filter(o => o.returnStatus);
+
+  const handleReturnAction = async (orderId: string, action: "accepted" | "rejected") => {
+    const { error } = await supabase.from("orders").update({ return_status: action } as any).eq("id", orderId);
+    if (error) { toast.error("Failed to update return status"); return; }
+    toast.success(`Return ${action}`);
+    fetchAllOrders();
+  };
+
+  const statusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      requested: "bg-amber-50 text-amber-600 border-amber-200",
+      accepted: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      rejected: "bg-red-50 text-red-600 border-red-200",
+    };
+    return styles[status] || styles.requested;
+  };
 
   return (
     <div className="min-h-screen pt-28 px-6 max-w-5xl mx-auto pb-20">
@@ -31,17 +49,19 @@ const AdminReturns = () => {
         <div className="space-y-4">
           {returnOrders.map(order => (
             <motion.div key={order.id} layout className="glass-panel rounded-2xl p-6">
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="font-mono text-xs text-primary">Order #{order.id.slice(0, 8)}</p>
                   <p className="text-sm font-semibold text-foreground mt-1">{order.customerName}</p>
                   <p className="text-xs text-muted-foreground">{order.phone}</p>
+                  <p className="text-xs text-muted-foreground">{order.address}, {order.city}</p>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-mono bg-amber-50 text-amber-600 border border-amber-200">
-                  {(order as any).returnStatus}
+                <span className={`px-3 py-1 rounded-full text-xs font-mono border capitalize ${statusBadge(order.returnStatus || "")}`}>
+                  {order.returnStatus}
                 </span>
               </div>
-              <div className="space-y-2 mb-3">
+
+              <div className="space-y-2 mb-4">
                 {(order.items as any[]).map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-3">
                     <img src={item.product?.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -52,13 +72,28 @@ const AdminReturns = () => {
                   </div>
                 ))}
               </div>
-              <div className="glass-panel rounded-xl p-3 bg-amber-50/50">
+
+              <div className="glass-panel rounded-xl p-3 bg-amber-50/50 mb-3">
                 <p className="text-xs font-semibold text-foreground mb-1">Return Reason:</p>
-                <p className="text-sm text-muted-foreground">{(order as any).returnReason || "No reason provided"}</p>
+                <p className="text-sm text-muted-foreground">{order.returnReason || "No reason provided"}</p>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Requested: {(order as any).returnRequestedAt ? new Date((order as any).returnRequestedAt).toLocaleString() : "N/A"}
+
+              <p className="text-xs text-muted-foreground mb-4">
+                Requested: {order.returnRequestedAt ? new Date(order.returnRequestedAt).toLocaleString() : "N/A"}
               </p>
+
+              {order.returnStatus === "requested" && (
+                <div className="flex gap-2">
+                  <button onClick={() => handleReturnAction(order.id, "accepted")}
+                    className="neon-button px-4 py-2 text-sm flex items-center gap-1.5">
+                    <CheckCircle className="w-4 h-4" /> Accept
+                  </button>
+                  <button onClick={() => handleReturnAction(order.id, "rejected")}
+                    className="neon-button-outline px-4 py-2 text-sm flex items-center gap-1.5 !border-destructive !text-destructive">
+                    <XCircle className="w-4 h-4" /> Reject
+                  </button>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

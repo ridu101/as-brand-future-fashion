@@ -1,10 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Package, ShoppingCart, BarChart3, RotateCcw, LogOut } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, RotateCcw, LogOut, Leaf } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
 import { useProducts } from "@/context/ProductContext";
+import { toast } from "sonner";
+
+const seasons = [
+  { value: "eid", label: "🌙 Eid" },
+  { value: "winter", label: "❄️ Winter" },
+  { value: "summer", label: "☀️ Summer" },
+];
 
 const cards = [
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders", color: "from-blue-500/10 to-cyan-500/10", iconColor: "text-blue-500" },
@@ -18,6 +25,7 @@ const AdminDashboard = () => {
   const { user, isAdmin, logout } = useAuth();
   const { orders } = useOrders();
   const { products } = useProducts();
+  const [selectedSeason, setSelectedSeason] = useState(() => localStorage.getItem("clothify_season") || "");
 
   useEffect(() => {
     if (!isAdmin) navigate("/login");
@@ -25,11 +33,23 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => { await logout(); navigate("/login"); };
 
+  const handleSeasonChange = (season: string) => {
+    if (selectedSeason === season) {
+      setSelectedSeason("");
+      localStorage.removeItem("clothify_season");
+      toast.success("Seasonal collection cleared");
+    } else {
+      setSelectedSeason(season);
+      localStorage.setItem("clothify_season", season);
+      toast.success(`${season.charAt(0).toUpperCase() + season.slice(1)} collection activated`);
+    }
+  };
+
   const counts: Record<string, number | string> = {
     Orders: orders.length,
     Products: products.length,
     Sells: `৳${orders.filter(o => o.status === "delivered").reduce((s, o) => s + o.totalPrice, 0)}`,
-    "Return Orders": orders.filter(o => (o as any).returnStatus).length,
+    "Return Orders": orders.filter(o => o.returnStatus).length,
   };
 
   return (
@@ -44,7 +64,7 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
         {cards.map((card, i) => (
           <motion.button
             key={card.label}
@@ -60,6 +80,24 @@ const AdminDashboard = () => {
           </motion.button>
         ))}
       </div>
+
+      {/* Seasonal Collection Selector */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        className="glass-panel rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Leaf className="w-5 h-5 text-primary" />
+          <h2 className="font-heading text-lg font-bold text-foreground">Seasonal Collection</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">Select a season to feature on the homepage. Click again to deselect.</p>
+        <div className="flex gap-3">
+          {seasons.map(s => (
+            <button key={s.value} onClick={() => handleSeasonChange(s.value)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-heading font-semibold transition-all duration-300 ${selectedSeason === s.value ? "neon-button" : "glass-panel hover:bg-primary/5"}`}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 };
