@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, ShoppingBag, Heart, Minus, Plus, Check, Zap } from "lucide-react";
 import { useProducts } from "@/context/ProductContext";
 import { useCart } from "@/context/CartContext";
@@ -20,6 +20,11 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+
+  // Scroll to top on product change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [id]);
 
   if (!product) {
     return (
@@ -41,7 +46,6 @@ const ProductPage = () => {
     if (!requireAuth("add to cart")) return;
     if (!selectedSize) { toast.error("Please select a size"); return; }
     for (let i = 0; i < qty; i++) addItem(product, selectedSize);
-    toast.success(`${product.title} added to cart!`);
   };
 
   const handleBuyNow = () => {
@@ -71,7 +75,6 @@ const ProductPage = () => {
                   src={displayImage} alt={product.title} className="w-full h-full object-cover" />
               </div>
             </div>
-            {/* Thumbnails */}
             {colors.length > 0 && (
               <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
                 {colors.map((c, i) => (
@@ -95,7 +98,6 @@ const ProductPage = () => {
               <span className="text-sm text-primary font-mono">{product.stock} in stock</span>
             </div>
 
-            {/* Color Swatches */}
             {colors.length > 0 && (
               <div className="mt-6">
                 <p className="text-sm font-heading font-semibold mb-3">Color: {colors[selectedColorIdx]?.name}</p>

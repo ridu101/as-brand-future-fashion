@@ -1,29 +1,33 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Package, Heart, Settings, Mail, Edit2, Save } from "lucide-react";
+import { User, Package, Heart, Settings, Mail, Edit2, Save, RotateCcw } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
 import { useWishlist } from "@/context/WishlistContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, updateProfile } = useAuth();
-  const { getOrdersByUser } = useOrders();
+  const { getOrdersByUser, requestReturn } = useOrders();
   const { items: wishlistItems } = useWishlist();
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "settings">("orders");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [returnModal, setReturnModal] = useState<{ open: boolean; orderId: string }>({ open: false, orderId: "" });
+  const [returnReason, setReturnReason] = useState("");
 
-  useEffect(() => {
-    if (!isLoggedIn) navigate("/login");
-  }, [isLoggedIn, navigate]);
-
-  useEffect(() => {
-    if (user) setEditForm({ name: user.name, email: user.email });
-  }, [user]);
+  useEffect(() => { if (!isLoggedIn) navigate("/login"); }, [isLoggedIn, navigate]);
+  useEffect(() => { if (user) setEditForm({ name: user.name, email: user.email }); }, [user]);
 
   if (!user) return null;
 
@@ -42,6 +46,13 @@ const ProfilePage = () => {
     setEditing(false);
   };
 
+  const handleReturnSubmit = async () => {
+    if (!returnReason.trim()) { toast.error("Please enter a return reason"); return; }
+    await requestReturn(returnModal.orderId, returnReason.trim());
+    setReturnModal({ open: false, orderId: "" });
+    setReturnReason("");
+  };
+
   const tabs = [
     { id: "orders" as const, label: "Orders", icon: Package, count: userOrders.length },
     { id: "wishlist" as const, label: "Wishlist", icon: Heart, count: wishlistItems.length },
@@ -58,12 +69,8 @@ const ProfilePage = () => {
             </div>
             <div>
               <h1 className="font-heading text-2xl font-bold text-foreground">{user.name}</h1>
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                <Mail className="w-3.5 h-3.5" /> {user.email}
-              </p>
-              <p className="text-xs text-muted-foreground font-mono mt-1">
-                Member since {new Date(user.createdAt).toLocaleDateString()}
-              </p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1"><Mail className="w-3.5 h-3.5" /> {user.email}</p>
+              <p className="text-xs text-muted-foreground font-mono mt-1">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
@@ -111,9 +118,20 @@ const ProfilePage = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-border pt-3 flex justify-between text-sm">
+                  <div className="border-t border-border pt-3 flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</span>
-                    <span className="price-text font-bold">৳{order.totalPrice}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="price-text font-bold">৳{order.totalPrice}</span>
+                      {order.status === "delivered" && !order.returnStatus && (
+                        <button onClick={() => setReturnModal({ open: true, orderId: order.id })}
+                          className="neon-button-outline px-3 py-1.5 text-xs flex items-center gap-1">
+                          <RotateCcw className="w-3 h-3" /> Return
+                        </button>
+                      )}
+                      {order.returnStatus && (
+                        <span className="text-xs font-mono text-amber-600 capitalize">Return: {order.returnStatus}</span>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))
@@ -172,6 +190,24 @@ const ProfilePage = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Return Modal */}
+      <Dialog open={returnModal.open} onOpenChange={(open) => { setReturnModal({ open, orderId: open ? returnModal.orderId : "" }); setReturnReason(""); }}>
+        <DialogContent className="glass-panel border-border">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Return Product</DialogTitle>
+            <DialogDescription>Please provide a reason for the return.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <textarea placeholder="Return reason..." value={returnReason} onChange={e => setReturnReason(e.target.value)}
+              className="w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[100px]" />
+            <div className="glass-panel rounded-xl p-3 bg-amber-50/50">
+              <p className="text-xs text-amber-700">⚠️ Customer must send product via courier and bear the return shipping cost.</p>
+            </div>
+            <button onClick={handleReturnSubmit} className="neon-button w-full py-3 text-sm font-heading font-semibold">Submit Return Request</button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
