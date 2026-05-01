@@ -74,63 +74,6 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
-        Row: {
-          category: string
-          colors: Json
-          cost_price: number
-          created_at: string
-          description: string
-          featured: boolean
-          id: string
-          image: string
-          price: number
-          seasonal: string | null
-          sizes: Json
-          stock: number
-          title: string
-          trending: boolean
-          updated_at: string
-          year: number
-        }
-        Insert: {
-          category: string
-          colors?: Json
-          cost_price?: number
-          created_at?: string
-          description?: string
-          featured?: boolean
-          id?: string
-          image?: string
-          price?: number
-          seasonal?: string | null
-          sizes?: Json
-          stock?: number
-          title: string
-          trending?: boolean
-          updated_at?: string
-          year?: number
-        }
-        Update: {
-          category?: string
-          colors?: Json
-          cost_price?: number
-          created_at?: string
-          description?: string
-          featured?: boolean
-          id?: string
-          image?: string
-          price?: number
-          seasonal?: string | null
-          sizes?: Json
-          stock?: number
-          title?: string
-          trending?: boolean
-          updated_at?: string
-          year?: number
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null

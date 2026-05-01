@@ -4,15 +4,14 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Star, Mail } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
-import ProductSlider from "@/components/ProductSlider";
 import { categories } from "@/data/products";
 import { useProducts } from "@/context/ProductContext";
 import { toast } from "sonner";
 
 const Index = () => {
   const { getTrendingProducts, getFeaturedProducts, getSeasonalProducts, products } = useProducts();
-  const trending = getTrendingProducts().slice(0, 12);
-  const featured = getFeaturedProducts().slice(0, 12);
+  const trending = getTrendingProducts().slice(0, 8);
+  const featured = getFeaturedProducts().slice(0, 8);
   const latestProducts = products.slice(0, 6);
 
   // Show only the selected seasonal collection if one is active
@@ -48,9 +47,9 @@ const Index = () => {
         <section className="px-6 py-16 max-w-7xl mx-auto">
           <motion.div {...sectionAnim}>
             <SectionHeader title={seasonLabels[savedSeason] || "Seasonal Collection"} subtitle="Curated picks for the season" link="/shop" />
-            <ProductSlider>
-              {seasonalProducts.slice(0, 12).map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-            </ProductSlider>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {seasonalProducts.slice(0, 8).map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+            </div>
           </motion.div>
         </section>
       )}
@@ -58,25 +57,25 @@ const Index = () => {
       <section className="px-6 py-16 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Trending Now" subtitle="Most popular picks this season" link="/trending" />
-          <ProductSlider>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {trending.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-          </ProductSlider>
+          </div>
         </motion.div>
       </section>
 
       <section className="px-6 py-16 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Latest Collection" subtitle="Fresh arrivals just for you" link="/shop" />
-          <ProductSlider>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {featured.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-          </ProductSlider>
+          </div>
         </motion.div>
       </section>
 
       <section className="px-6 py-16 max-w-7xl mx-auto">
         <motion.div {...sectionAnim}>
           <SectionHeader title="Featured Categories" subtitle="Browse by category" link="/categories" />
-          <ProductSlider>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {categories.map((cat, i) => (
               <motion.div key={cat.slug} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.05 }}>
                 <Link to={`/${cat.slug}`} className="block group">
@@ -93,7 +92,7 @@ const Index = () => {
                 </Link>
               </motion.div>
             ))}
-          </ProductSlider>
+          </div>
         </motion.div>
       </section>
 

@@ -78,24 +78,20 @@ const AdminProductsByCategory = () => {
     }
   };
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.title || !newProduct.price) { toast.error("Title and price required"); return; }
-    try {
-      await addProduct(newProduct);
-      setNewProduct(emptyProduct());
-      setShowAdd(false);
-      toast.success("Product added!");
-    } catch {}
+    addProduct({ ...newProduct, id: `custom-${Date.now()}` } as Product);
+    setNewProduct(emptyProduct());
+    setShowAdd(false);
+    toast.success("Product added!");
   };
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = () => {
     if (!editingProduct) return;
-    try {
-      await updateProduct(editingProduct);
-      setEditingProduct(null);
-      toast.success("Product updated!");
-    } catch {}
+    updateProduct(editingProduct);
+    setEditingProduct(null);
+    toast.success("Product updated!");
   };
 
   const updateNewColor = (idx: number, field: keyof ProductColor, value: string) => {
@@ -226,7 +222,7 @@ const AdminProductsByCategory = () => {
             </div>
             <div className="flex gap-2">
               <button onClick={() => setEditingProduct(p)} className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors duration-300"><Edit className="w-4 h-4" /></button>
-              <button onClick={async () => { await deleteProduct(p.id); toast.success("Deleted"); }} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors duration-300"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => { deleteProduct(p.id); toast.success("Deleted"); }} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors duration-300"><Trash2 className="w-4 h-4" /></button>
             </div>
           </motion.div>
         ))}

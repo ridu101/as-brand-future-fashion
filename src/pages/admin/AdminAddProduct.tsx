@@ -40,20 +40,20 @@ const AdminAddProduct = () => {
     return data.publicUrl;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.price) { toast.error("Title and price required"); return; }
-    try {
-      await addProduct({
-        title: form.title, category: form.category, year: form.year, price: form.price,
-        costPrice: form.costPrice, sizes: form.sizes.split(",").map(s => s.trim()),
-        stock: form.stock, description: form.description,
-        image: form.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
-        colors: form.colors,
-      });
-      toast.success("Product added!");
-      navigate("/admin/products");
-    } catch {}
+    const p: Product = {
+      id: `custom-${Date.now()}`,
+      title: form.title, category: form.category, year: form.year, price: form.price,
+      costPrice: form.costPrice, sizes: form.sizes.split(",").map(s => s.trim()),
+      stock: form.stock, description: form.description,
+      image: form.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
+      colors: form.colors,
+    };
+    addProduct(p);
+    toast.success("Product added!");
+    navigate("/admin/products");
   };
 
   return (
