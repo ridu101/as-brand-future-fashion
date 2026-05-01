@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Star, Mail } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
+import ProductSlider from "@/components/ProductSlider";
 import { categories } from "@/data/products";
 import { useProducts } from "@/context/ProductContext";
 import { toast } from "sonner";
