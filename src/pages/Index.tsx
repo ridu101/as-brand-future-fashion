@@ -11,8 +11,8 @@ import { toast } from "sonner";
 
 const Index = () => {
   const { getTrendingProducts, getFeaturedProducts, getSeasonalProducts, products } = useProducts();
-  const trending = getTrendingProducts().slice(0, 8);
-  const featured = getFeaturedProducts().slice(0, 8);
+  const trending = getTrendingProducts().slice(0, 12);
+  const featured = getFeaturedProducts().slice(0, 12);
   const latestProducts = products.slice(0, 6);
 
   // Show only the selected seasonal collection if one is active
