@@ -87,6 +87,7 @@ const App = () => (
                     <Route path="/jacket" element={<CategoryPage />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
+                  </PageTransition>
                   <Footer />
                 </BrowserRouter>
               </OrderProvider>
