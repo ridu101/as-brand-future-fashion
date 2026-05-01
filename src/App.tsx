@@ -13,6 +13,7 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import Footer from "@/components/Footer";
+import PageTransition from "@/components/PageTransition";
 import Index from "./pages/Index";
 import ShopPage from "./pages/ShopPage";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -53,6 +54,7 @@ const App = () => (
                   <AnimatedBackground />
                   <Navbar />
                   <CartDrawer />
+                  <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/shop" element={<ShopPage />} />
