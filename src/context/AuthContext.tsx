@@ -306,10 +306,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = useCallback(async () => {
     try {
+      console.log("[Auth] Google OAuth start, redirect:", window.location.origin);
       const { lovable } = await import("@/integrations/lovable");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
+
+      console.log("[Auth] Google OAuth result:", { redirected: result?.redirected, error: result?.error?.message });
 
       if (result.error) {
         toast.error(getFriendlyAuthError(result.error.message));
@@ -320,6 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
     } catch (err: any) {
+      console.error("[Auth] Google login exception:", err);
       toast.error("Google login failed. Please try again.");
     }
   }, []);
