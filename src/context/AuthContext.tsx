@@ -270,9 +270,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           full_name: trimmedName,
           name: trimmedName,
         },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
+
+    console.log("[Auth] signUp:", { user: data?.user?.email, error: error?.message });
 
     if (error) {
       toast.error(getFriendlyAuthError(error.message));
