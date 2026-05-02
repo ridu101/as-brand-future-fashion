@@ -224,6 +224,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password,
     });
 
+    console.log("[Auth] signInWithPassword:", { user: data?.user?.email, error: error?.message });
+
     if (error) {
       toast.error(getFriendlyAuthError(error.message));
       return { success: false };
