@@ -75,6 +75,8 @@ const ProfilePage = () => {
       setReturnReason("");
     }
   };
+
+  const tabs = [
     { id: "orders" as const, label: "Orders", icon: Package, count: userOrders.length },
     { id: "wishlist" as const, label: "Wishlist", icon: Heart, count: wishlistItems.length },
     { id: "settings" as const, label: "Settings", icon: Settings },
