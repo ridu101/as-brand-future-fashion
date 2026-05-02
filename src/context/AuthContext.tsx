@@ -33,6 +33,20 @@ interface AuthResult {
   role?: User["role"];
 }
 
+// Production env diagnostics — helps debug Vercel deployments
+if (typeof window !== "undefined") {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  console.log("[Auth] Env check:", {
+    hasUrl: !!url,
+    hasKey: !!key,
+    origin: window.location.origin,
+  });
+  if (!url || !key) {
+    console.error("[Auth] Missing Supabase env vars. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in Vercel.");
+  }
+}
+
 const authStorageMatchers = ["-auth-token", "supabase.auth.token"];
 const profileSyncCache = new Map<string, Promise<void>>();
 
