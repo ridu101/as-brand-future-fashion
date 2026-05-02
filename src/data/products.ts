@@ -1,3 +1,5 @@
+import { defaultCategoryImages } from "@/lib/categoryImages";
+
 export interface ProductColor {
   name: string;
   code: string;
@@ -28,14 +30,14 @@ export type Category = {
 };
 
 export const categories: Category[] = [
-  { slug: "panjabi", name: "Panjabi", image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=500&fit=crop" },
-  { slug: "shirt", name: "Shirt", image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=500&fit=crop" },
-  { slug: "pant", name: "Pant", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&h=500&fit=crop" },
-  { slug: "katua", name: "Katua", image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=500&fit=crop" },
-  { slug: "tshirt", name: "T-Shirt", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop" },
-  { slug: "polo", name: "Polo Shirt", image: "https://images.unsplash.com/photo-1625910513413-5fc42f006596?w=400&h=500&fit=crop" },
-  { slug: "hoodie", name: "Hoodie", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop" },
-  { slug: "jacket", name: "Winter Jacket", image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop" },
+  { slug: "panjabi", name: "Panjabi", image: defaultCategoryImages.panjabi },
+  { slug: "shirt", name: "Shirt", image: defaultCategoryImages.shirt },
+  { slug: "pant", name: "Pant", image: defaultCategoryImages.pant },
+  { slug: "katua", name: "Katua", image: defaultCategoryImages.katua },
+  { slug: "tshirt", name: "T-Shirt", image: defaultCategoryImages.tshirt },
+  { slug: "polo", name: "Polo Shirt", image: defaultCategoryImages.polo },
+  { slug: "hoodie", name: "Hoodie", image: defaultCategoryImages.hoodie },
+  { slug: "jacket", name: "Winter Jacket", image: defaultCategoryImages.jacket },
 ];
 
 const colorSets: ProductColor[][] = [
@@ -94,16 +96,16 @@ const generateProducts = (): Product[] => {
   for (const cat of categories) {
     const names = namesByCategory[cat.slug] || [];
     const [minP, maxP] = priceRanges[cat.slug] || [500, 2000];
-    const catImages = images[cat.slug] || [cat.image];
+    // Always use the verified category fallback image — no mixed visuals across categories
+    const baseImage = defaultCategoryImages[cat.slug] || cat.image;
 
     for (let i = 0; i < 10; i++) {
       const price = Math.round((minP + Math.random() * (maxP - minP)) / 10) * 10;
       const seasonal = i < 2 ? "eid" : i < 4 ? "winter" : i < 6 ? "summer" : undefined;
       const costPrice = Math.round(price * (0.4 + Math.random() * 0.2));
-      const baseImage = catImages[i % catImages.length];
-      const colors = colorSets[i % colorSets.length].map((c, ci) => ({
+      const colors = colorSets[i % colorSets.length].map(c => ({
         ...c,
-        image: ci === 0 ? baseImage : c.image,
+        image: baseImage, // every variant inherits the validated category image
       }));
       products.push({
         id: `p${id++}`,

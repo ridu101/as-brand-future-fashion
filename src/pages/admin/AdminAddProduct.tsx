@@ -7,6 +7,7 @@ import { useProducts } from "@/context/ProductContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateCategoryImage, getCategoryFallbackImage } from "@/lib/categoryImages";
 
 const inputCls = "w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300";
 
@@ -43,13 +44,22 @@ const AdminAddProduct = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.price) { toast.error("Title and price required"); return; }
+
+    // Category-image validation
+    const check = validateCategoryImage(form.category, form.image);
+    if (!check.valid) { toast.error(check.message || "Image does not match selected category"); return; }
+
+    // Fallback to category default image when none provided
+    const finalImage = form.image || getCategoryFallbackImage(form.category);
+    const finalColors = form.colors.map(c => ({ ...c, image: c.image || finalImage }));
+
     const p: Product = {
       id: `custom-${Date.now()}`,
       title: form.title, category: form.category, year: form.year, price: form.price,
       costPrice: form.costPrice, sizes: form.sizes.split(",").map(s => s.trim()),
       stock: form.stock, description: form.description,
-      image: form.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop",
-      colors: form.colors,
+      image: finalImage,
+      colors: finalColors,
     };
     addProduct(p);
     toast.success("Product added!");

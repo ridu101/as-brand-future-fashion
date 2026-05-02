@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ProductProvider } from "@/context/ProductContext";
 import { OrderProvider } from "@/context/OrderContext";
+import { ReturnProvider } from "@/context/ReturnContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import Navbar from "@/components/Navbar";
@@ -47,6 +48,7 @@ const App = () => (
           <CartProvider>
             <WishlistProvider>
               <OrderProvider>
+                <ReturnProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
@@ -87,6 +89,7 @@ const App = () => (
                   </Routes>
                   <Footer />
                 </BrowserRouter>
+                </ReturnProvider>
               </OrderProvider>
             </WishlistProvider>
           </CartProvider>

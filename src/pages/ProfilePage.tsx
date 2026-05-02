@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { User, Package, Heart, Settings, Mail, Edit2, Save, RotateCcw } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
+import { useReturns, RETURN_STATUS_LABELS } from "@/context/ReturnContext";
 import { useWishlist } from "@/context/WishlistContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
@@ -18,12 +19,17 @@ import {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, updateProfile } = useAuth();
-  const { getOrdersByUser, requestReturn } = useOrders();
+  const { getOrdersByUser } = useOrders();
+  const { returns, createReturn, getReturnByOrderProduct } = useReturns();
   const { items: wishlistItems } = useWishlist();
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "settings">("orders");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
-  const [returnModal, setReturnModal] = useState<{ open: boolean; orderId: string }>({ open: false, orderId: "" });
+  const [returnModal, setReturnModal] = useState<{
+    open: boolean;
+    orderId: string;
+    item: any | null;
+  }>({ open: false, orderId: "", item: null });
   const [returnReason, setReturnReason] = useState("");
 
   useEffect(() => { if (!isLoggedIn) navigate("/login"); }, [isLoggedIn, navigate]);
@@ -46,11 +52,28 @@ const ProfilePage = () => {
     setEditing(false);
   };
 
+  const openReturnModal = (orderId: string, item: any) => {
+    setReturnModal({ open: true, orderId, item });
+    setReturnReason("");
+  };
+
   const handleReturnSubmit = async () => {
     if (!returnReason.trim()) { toast.error("Please enter a return reason"); return; }
-    await requestReturn(returnModal.orderId, returnReason.trim());
-    setReturnModal({ open: false, orderId: "" });
-    setReturnReason("");
+    const { orderId, item } = returnModal;
+    if (!item) return;
+    const ok = await createReturn({
+      orderId,
+      productId: String(item.product?.id ?? ""),
+      productTitle: item.product?.title ?? "",
+      productImage: item.product?.image ?? "",
+      productSize: item.size ?? "",
+      productQuantity: item.quantity ?? 1,
+      reason: returnReason.trim(),
+    });
+    if (ok) {
+      setReturnModal({ open: false, orderId: "", item: null });
+      setReturnReason("");
+    }
   };
 
   const tabs = [
@@ -107,31 +130,40 @@ const ProfilePage = () => {
                     </span>
                   </div>
                   <div className="space-y-2 mb-3">
-                    {(order.items as any[]).map((item: any, i: number) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <img src={item.product?.image} alt={item.product?.title} className="w-10 h-10 rounded-lg object-cover" />
-                        <div className="flex-1">
-                          <p className="text-sm text-foreground">{item.product?.title}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{item.size} × {item.quantity}</p>
+                    {(order.items as any[]).map((item: any, i: number) => {
+                      const productId = String(item.product?.id ?? "");
+                      const existingReturn = getReturnByOrderProduct(order.id, productId);
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <img src={item.product?.image} alt={item.product?.title} className="w-10 h-10 rounded-lg object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-foreground truncate">{item.product?.title}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{item.size} × {item.quantity}</p>
+                            {existingReturn && (
+                              <p className="text-[11px] font-mono text-primary mt-0.5">
+                                Return: {RETURN_STATUS_LABELS[existingReturn.status]}
+                              </p>
+                            )}
+                          </div>
+                          <p className="text-sm font-mono text-primary whitespace-nowrap">৳{(item.product?.price || 0) * item.quantity}</p>
+                          {order.status === "delivered" && !existingReturn && (
+                            <button
+                              onClick={() => openReturnModal(order.id, item)}
+                              className="neon-button-outline px-2.5 py-1 text-[11px] flex items-center gap-1 whitespace-nowrap"
+                            >
+                              <RotateCcw className="w-3 h-3" /> Return
+                            </button>
+                          )}
+                          {existingReturn && (
+                            <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">Return Requested</span>
+                          )}
                         </div>
-                        <p className="text-sm font-mono text-primary">৳{(item.product?.price || 0) * item.quantity}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="border-t border-border pt-3 flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{order.deliveryType === "dhaka" ? "Inside Dhaka" : "Outside Dhaka"}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="price-text font-bold">৳{order.totalPrice}</span>
-                      {order.status === "delivered" && !order.returnStatus && (
-                        <button onClick={() => setReturnModal({ open: true, orderId: order.id })}
-                          className="neon-button-outline px-3 py-1.5 text-xs flex items-center gap-1">
-                          <RotateCcw className="w-3 h-3" /> Return
-                        </button>
-                      )}
-                      {order.returnStatus && (
-                        <span className="text-xs font-mono text-amber-600 capitalize">Return: {order.returnStatus}</span>
-                      )}
-                    </div>
+                    <span className="price-text font-bold">৳{order.totalPrice}</span>
                   </div>
                 </motion.div>
               ))
@@ -192,8 +224,24 @@ const ProfilePage = () => {
       </motion.div>
 
       {/* Return Modal */}
-      <Dialog open={returnModal.open} onOpenChange={(open) => { setReturnModal({ open, orderId: open ? returnModal.orderId : "" }); setReturnReason(""); }}>
-        <DialogContent className="glass-panel border-border">
+      <Dialog
+        open={returnModal.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReturnModal({ open: false, orderId: "", item: null });
+            setReturnReason("");
+          }
+        }}
+      >
+        <DialogContent className="bg-white/40 backdrop-blur-xl border border-white/30">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Return Product</DialogTitle>
+            <DialogDescription>
+              {returnModal.item?.product?.title
+                ? `Returning: ${returnModal.item.product.title}`
+                : "Please provide a reason for the return."}
+            </DialogDescription>
+          </DialogHeader>
           <DialogHeader>
             <DialogTitle className="font-heading">Return Product</DialogTitle>
             <DialogDescription>Please provide a reason for the return.</DialogDescription>
