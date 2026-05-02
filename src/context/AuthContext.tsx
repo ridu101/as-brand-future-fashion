@@ -33,6 +33,20 @@ interface AuthResult {
   role?: User["role"];
 }
 
+// Production env diagnostics — helps debug Vercel deployments
+if (typeof window !== "undefined") {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  console.log("[Auth] Env check:", {
+    hasUrl: !!url,
+    hasKey: !!key,
+    origin: window.location.origin,
+  });
+  if (!url || !key) {
+    console.error("[Auth] Missing Supabase env vars. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in Vercel.");
+  }
+}
+
 const authStorageMatchers = ["-auth-token", "supabase.auth.token"];
 const profileSyncCache = new Map<string, Promise<void>>();
 
@@ -167,7 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let active = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[Auth] State change:", event, "user:", session?.user?.email ?? null);
       void (async () => {
         if (!active) return;
 
@@ -208,6 +223,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: email.trim(),
       password,
     });
+
+    console.log("[Auth] signInWithPassword:", { user: data?.user?.email, error: error?.message });
 
     if (error) {
       toast.error(getFriendlyAuthError(error.message));
@@ -253,9 +270,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           full_name: trimmedName,
           name: trimmedName,
         },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
+
+    console.log("[Auth] signUp:", { user: data?.user?.email, error: error?.message });
 
     if (error) {
       toast.error(getFriendlyAuthError(error.message));
@@ -287,10 +306,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = useCallback(async () => {
     try {
+      console.log("[Auth] Google OAuth start, redirect:", window.location.origin);
       const { lovable } = await import("@/integrations/lovable");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
+
+      console.log("[Auth] Google OAuth result:", { redirected: result?.redirected, error: result?.error?.message });
 
       if (result.error) {
         toast.error(getFriendlyAuthError(result.error.message));
@@ -301,6 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
     } catch (err: any) {
+      console.error("[Auth] Google login exception:", err);
       toast.error("Google login failed. Please try again.");
     }
   }, []);
