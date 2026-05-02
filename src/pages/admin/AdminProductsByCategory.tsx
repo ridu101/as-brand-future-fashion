@@ -7,6 +7,7 @@ import { useProducts } from "@/context/ProductContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateCategoryImage, getCategoryFallbackImage } from "@/lib/categoryImages";
 
 const inputCls = "w-full bg-white/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none border border-border focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-300";
 
@@ -81,7 +82,11 @@ const AdminProductsByCategory = () => {
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.title || !newProduct.price) { toast.error("Title and price required"); return; }
-    addProduct({ ...newProduct, id: `custom-${Date.now()}` } as Product);
+    const check = validateCategoryImage(newProduct.category, newProduct.image);
+    if (!check.valid) { toast.error(check.message!); return; }
+    const finalImage = newProduct.image || getCategoryFallbackImage(newProduct.category);
+    const finalColors = (newProduct.colors || []).map(c => ({ ...c, image: c.image || finalImage }));
+    addProduct({ ...newProduct, image: finalImage, colors: finalColors, id: `custom-${Date.now()}` } as Product);
     setNewProduct(emptyProduct());
     setShowAdd(false);
     toast.success("Product added!");
@@ -89,7 +94,11 @@ const AdminProductsByCategory = () => {
 
   const handleSaveEdit = () => {
     if (!editingProduct) return;
-    updateProduct(editingProduct);
+    const check = validateCategoryImage(editingProduct.category, editingProduct.image);
+    if (!check.valid) { toast.error(check.message!); return; }
+    const finalImage = editingProduct.image || getCategoryFallbackImage(editingProduct.category);
+    const finalColors = (editingProduct.colors || []).map(c => ({ ...c, image: c.image || finalImage }));
+    updateProduct({ ...editingProduct, image: finalImage, colors: finalColors });
     setEditingProduct(null);
     toast.success("Product updated!");
   };
