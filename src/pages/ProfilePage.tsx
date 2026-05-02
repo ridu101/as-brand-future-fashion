@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { User, Package, Heart, Settings, Mail, Edit2, Save, RotateCcw } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
+import { useReturns, RETURN_STATUS_LABELS } from "@/context/ReturnContext";
 import { useWishlist } from "@/context/WishlistContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
@@ -18,12 +19,17 @@ import {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, updateProfile } = useAuth();
-  const { getOrdersByUser, requestReturn } = useOrders();
+  const { getOrdersByUser } = useOrders();
+  const { returns, createReturn, getReturnByOrderProduct } = useReturns();
   const { items: wishlistItems } = useWishlist();
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "settings">("orders");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
-  const [returnModal, setReturnModal] = useState<{ open: boolean; orderId: string }>({ open: false, orderId: "" });
+  const [returnModal, setReturnModal] = useState<{
+    open: boolean;
+    orderId: string;
+    item: any | null;
+  }>({ open: false, orderId: "", item: null });
   const [returnReason, setReturnReason] = useState("");
 
   useEffect(() => { if (!isLoggedIn) navigate("/login"); }, [isLoggedIn, navigate]);
@@ -46,14 +52,29 @@ const ProfilePage = () => {
     setEditing(false);
   };
 
-  const handleReturnSubmit = async () => {
-    if (!returnReason.trim()) { toast.error("Please enter a return reason"); return; }
-    await requestReturn(returnModal.orderId, returnReason.trim());
-    setReturnModal({ open: false, orderId: "" });
+  const openReturnModal = (orderId: string, item: any) => {
+    setReturnModal({ open: true, orderId, item });
     setReturnReason("");
   };
 
-  const tabs = [
+  const handleReturnSubmit = async () => {
+    if (!returnReason.trim()) { toast.error("Please enter a return reason"); return; }
+    const { orderId, item } = returnModal;
+    if (!item) return;
+    const ok = await createReturn({
+      orderId,
+      productId: String(item.product?.id ?? ""),
+      productTitle: item.product?.title ?? "",
+      productImage: item.product?.image ?? "",
+      productSize: item.size ?? "",
+      productQuantity: item.quantity ?? 1,
+      reason: returnReason.trim(),
+    });
+    if (ok) {
+      setReturnModal({ open: false, orderId: "", item: null });
+      setReturnReason("");
+    }
+  };
     { id: "orders" as const, label: "Orders", icon: Package, count: userOrders.length },
     { id: "wishlist" as const, label: "Wishlist", icon: Heart, count: wishlistItems.length },
     { id: "settings" as const, label: "Settings", icon: Settings },
