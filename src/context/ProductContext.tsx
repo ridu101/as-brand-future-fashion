@@ -17,15 +17,18 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const STORAGE_KEY = "as_products_v2"; // bumped: enforce category-matched fallback images
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const saved = localStorage.getItem("as_products");
+      const saved = localStorage.getItem(STORAGE_KEY);
+      // Drop the legacy v1 cache (mixed Unsplash images)
+      localStorage.removeItem("as_products");
       return saved ? JSON.parse(saved) : defaultProducts;
     } catch { return defaultProducts; }
   });
 
   useEffect(() => {
-    localStorage.setItem("as_products", JSON.stringify(products));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   }, [products]);
 
   const addProduct = useCallback((product: Product) => {
