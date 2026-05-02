@@ -96,16 +96,16 @@ const generateProducts = (): Product[] => {
   for (const cat of categories) {
     const names = namesByCategory[cat.slug] || [];
     const [minP, maxP] = priceRanges[cat.slug] || [500, 2000];
-    const catImages = images[cat.slug] || [cat.image];
+    // Always use the verified category fallback image — no mixed visuals across categories
+    const baseImage = defaultCategoryImages[cat.slug] || cat.image;
 
     for (let i = 0; i < 10; i++) {
       const price = Math.round((minP + Math.random() * (maxP - minP)) / 10) * 10;
       const seasonal = i < 2 ? "eid" : i < 4 ? "winter" : i < 6 ? "summer" : undefined;
       const costPrice = Math.round(price * (0.4 + Math.random() * 0.2));
-      const baseImage = catImages[i % catImages.length];
-      const colors = colorSets[i % colorSets.length].map((c, ci) => ({
+      const colors = colorSets[i % colorSets.length].map(c => ({
         ...c,
-        image: ci === 0 ? baseImage : c.image,
+        image: baseImage, // every variant inherits the validated category image
       }));
       products.push({
         id: `p${id++}`,
