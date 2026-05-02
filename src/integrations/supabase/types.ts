@@ -161,6 +161,51 @@ export type Database = {
         }
         Relationships: []
       }
+      return_requests: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string
+          product_image: string
+          product_quantity: number
+          product_size: string
+          product_title: string
+          reason: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id: string
+          product_image?: string
+          product_quantity?: number
+          product_size?: string
+          product_title?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string
+          product_image?: string
+          product_quantity?: number
+          product_size?: string
+          product_title?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
