@@ -327,27 +327,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = useCallback(async () => {
     try {
-      console.log("[Auth] Google OAuth start, redirect:", window.location.origin);
+      const origin = window.location.origin;
+      console.log("[AUTH] OAuth start", { provider: "google", origin });
       const { lovable } = await import("@/integrations/lovable");
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${origin}/`,
       });
 
-      console.log("[Auth] Google OAuth result:", { redirected: result?.redirected, error: result?.error?.message });
+      console.log("[AUTH] OAuth result:", { redirected: result?.redirected, error: result?.error?.message });
 
       if (result.error) {
         toast.error(getFriendlyAuthError(result.error.message));
         return;
       }
 
-      if (result.redirected) {
-        return;
+      if (result.redirected) return;
+
+      // Tokens already set — force session refresh
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        const mapped = await syncAuthenticatedUser(data.session.user);
+        toast.success("Welcome!");
+        const target = mapped.role === "admin" ? "/admin-dashboard" : "/";
+        window.location.href = target;
       }
     } catch (err: any) {
-      console.error("[Auth] Google login exception:", err);
+      console.error("[AUTH] Google login exception:", err);
       toast.error("Google login failed. Please try again.");
     }
-  }, []);
+  }, [syncAuthenticatedUser]);
 
   const logout = useCallback(async () => {
     const { error } = await supabase.auth.signOut({ scope: "local" });
