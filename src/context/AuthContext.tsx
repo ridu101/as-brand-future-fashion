@@ -181,13 +181,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let active = true;
 
+    // Detect OAuth callback (hash or query contains tokens / code)
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const isOAuthCallback =
+      hash.includes("access_token") ||
+      hash.includes("error") ||
+      search.includes("code=") ||
+      search.includes("error=");
+    if (isOAuthCallback) {
+      console.log("[AUTH] OAuth redirect received", { hash: !!hash, search: !!search });
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[Auth] State change:", event, "user:", session?.user?.email ?? null);
+      console.log("[AUTH] State change:", event, "user:", session?.user?.email ?? null);
       void (async () => {
         if (!active) return;
-
         try {
-          await applySession(session);
+          const mapped = await applySession(session);
+          if (event === "SIGNED_IN" && mapped) {
+            console.log("[AUTH] User logged in:", mapped.email, "role:", mapped.role);
+          }
         } finally {
           if (active) setLoading(false);
         }
@@ -197,14 +211,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     void (async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
-
         if (error) {
+          console.error("[AUTH] getSession error:", error.message);
           clearStoredAuthState();
           setUser(null);
           return;
         }
-
+        if (data.session) {
+          console.log("[AUTH] Session restored:", data.session.user.email);
+        }
         await applySession(data.session);
+
+        // Clean OAuth params from URL after successful restore
+        if (isOAuthCallback && data.session && typeof window !== "undefined") {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       } finally {
         if (active) setLoading(false);
       }
